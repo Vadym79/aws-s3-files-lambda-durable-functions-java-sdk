@@ -1,10 +1,14 @@
 
 package dev.vkazulkin.handler;
 
+import java.time.Duration;
+
 import dev.vkazulkin.entity.*;
 
 import software.amazon.lambda.durable.DurableContext;
 import software.amazon.lambda.durable.DurableHandler;
+import software.amazon.lambda.durable.config.CallbackConfig;
+import software.amazon.lambda.durable.config.WaitForCallbackConfig;
 
 
 public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent> implements AbstractAuthorContentExtractor {
@@ -20,7 +24,14 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 		
 	    var authorContent = new AuthorContent(author, upcomingTalks, youtubeVideos);
 		this.writeAuthorContentToFile(authorContent, ctx.getLogger());
+		
+		
+		var waitCallback= WaitForCallbackConfig.builder()
+	    .callbackConfig(CallbackConfig.builder().timeout(Duration.ofHours(1)).build()) // optional
+	    .build();
+	    
+		this.waitForUpcomingTalksApproval(ctx, author, upcomingTalks);
 	    return authorContent;
 	}
-
+		
 }

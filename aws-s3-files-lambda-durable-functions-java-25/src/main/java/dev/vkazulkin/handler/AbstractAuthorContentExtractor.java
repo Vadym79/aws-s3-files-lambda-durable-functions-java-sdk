@@ -8,12 +8,17 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Set;
 
+import dev.vkazulkin.entity.Author;
 import dev.vkazulkin.entity.AuthorContent;
 import dev.vkazulkin.entity.UpcomingTalk;
+import dev.vkazulkin.entity.UpcomingTalkApprovalStatus;
 import dev.vkazulkin.entity.UpcomingTalks;
 import dev.vkazulkin.entity.YouTubeVideo;
 import dev.vkazulkin.entity.YouTubeVideos;
+import software.amazon.lambda.durable.DurableContext;
+import software.amazon.lambda.durable.config.CallbackConfig;
 import software.amazon.lambda.durable.config.StepConfig;
+import software.amazon.lambda.durable.config.WaitForCallbackConfig;
 import software.amazon.lambda.durable.logging.DurableLogger;
 import software.amazon.lambda.durable.retry.JitterStrategy;
 import software.amazon.lambda.durable.retry.RetryStrategies;
@@ -59,5 +64,26 @@ public interface AbstractAuthorContentExtractor {
 		} catch (IOException ex) {
 			logger.error("error wrting to the file", ex);
 		}
+	}
+	
+	public default void waitForUpcomingTalksApproval (DurableContext ctx, Author author, UpcomingTalks upcomingTalks) {
+	    var waitCallback= WaitForCallbackConfig.builder()
+	    	  .callbackConfig(CallbackConfig.builder().timeout(Duration.ofHours(1))
+	    			  .build())
+			  .build();
+			    
+		var response= ctx.waitForCallback(
+	                "wait-for-approval",
+	                UpcomingTalkApprovalStatus.class,
+	                (callbackId, stepCtx) -> sendApprovalRequest(ctx.getLogger(), callbackId, author, upcomingTalks),
+	                waitCallback);
+         
+		ctx.getLogger().info("received  callback response "+response);
+
+	}
+	
+	private void sendApprovalRequest(DurableLogger logger, String callbackId, Author author, UpcomingTalks upcomingTalks) {
+		logger.info("get approval for the talk of  "+ author+ " for the talks "+upcomingTalks+
+				" with the callback id "+callbackId);
 	}
 }
