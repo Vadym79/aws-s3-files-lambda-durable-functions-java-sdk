@@ -1,6 +1,9 @@
 
 package dev.vkazulkin.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import dev.vkazulkin.entity.*;
 
 import software.amazon.lambda.durable.DurableContext;
@@ -9,10 +12,13 @@ import software.amazon.lambda.durable.DurableHandler;
 
 public class AsyncAuthorContentExtractor extends DurableHandler<Author, AuthorContent> implements AbstractAuthorContentExtractor {
 	  
+	
+	public static final Logger LOGGER = LoggerFactory.getLogger(AsyncAuthorContentExtractor.class);
+	
 	@Override
 	public AuthorContent handleRequest(Author author, DurableContext ctx) {
 
-		ctx.getLogger().info("author "+author);
+		LOGGER.info("author "+author);
 		var config = this.getStepConfig();
 		
 		var upcomingTalksFuture= ctx.stepAsync("searchForUpcomingTalks-async-step", UpcomingTalks.class, stepCtx -> this.searchForUpcomingTalks(), config);
@@ -25,9 +31,7 @@ public class AsyncAuthorContentExtractor extends DurableHandler<Author, AuthorCo
 		
 	    var authorContent = new AuthorContent(author, upcomingTalkApprovalStatus, youtubeVideos);
 		
-		this.writeAuthorContentToFile(authorContent, ctx.getLogger());
-		
-		
+		this.writeAuthorContentToFile(authorContent);
 		
 	    return authorContent;
 	}
