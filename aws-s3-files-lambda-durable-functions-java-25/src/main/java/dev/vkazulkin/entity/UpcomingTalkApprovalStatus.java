@@ -1,3 +1,3 @@
 package dev.vkazulkin.entity;
 
-public record UpcomingTalkApprovalStatus (String status)  {}
+public record UpcomingTalkApprovalStatus (UpcomingTalks upcomingTalks, String status)  {}

@@ -41,15 +41,11 @@ public interface AbstractAuthorContentExtractor {
 		
 	}
 	public default YouTubeVideos searchForYouTubeVideos() {
-		var youtubeVideo1= new YouTubeVideo("Building AI Agents with Spring AI and Amazon Bedrock AgentCore", 
-				"https://www.youtube.com/watch?v=JQXfSjMOa1g");
-		return new YouTubeVideos(Set.of(youtubeVideo1));
+		return YouTubeVideos.getDefaultYouTubeVideos();
 	}
 	
 	public default UpcomingTalks searchForUpcomingTalks() {
-		var upcomingTalk1= new UpcomingTalk("Building AI Agents with Spring AI and Amazon Bedrock AgentCore",
-			LocalDate.of(2026, 6, 13),"https://www.meetup.com/aws-user-group-dusseldorf/events/315327513");
-		return new UpcomingTalks(Set.of(upcomingTalk1));
+		return UpcomingTalks.getDefaultUpcomingTalks();
 	}
 	
 	public default void writeAuthorContentToFile(AuthorContent authorContent, DurableLogger logger) {
@@ -66,7 +62,7 @@ public interface AbstractAuthorContentExtractor {
 		}
 	}
 	
-	public default void waitForUpcomingTalksApproval (DurableContext ctx, Author author, UpcomingTalks upcomingTalks) {
+	public default UpcomingTalkApprovalStatus waitForUpcomingTalksApproval (DurableContext ctx, Author author, UpcomingTalks upcomingTalks) {
 	    var waitCallback= WaitForCallbackConfig.builder()
 	    	  .callbackConfig(CallbackConfig.builder().timeout(Duration.ofHours(1))
 	    			  .build())
@@ -78,7 +74,9 @@ public interface AbstractAuthorContentExtractor {
 	                (callbackId, stepCtx) -> sendApprovalRequest(ctx.getLogger(), callbackId, author, upcomingTalks),
 	                waitCallback);
          
-		ctx.getLogger().info("received  callback response "+response);
+		ctx.getLogger().info("received callback response "+response);
+		
+		return response;
 
 	}
 	

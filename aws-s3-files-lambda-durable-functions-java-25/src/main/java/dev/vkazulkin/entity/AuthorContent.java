@@ -1,6 +1,6 @@
 package dev.vkazulkin.entity;
 
-public record AuthorContent(Author author, UpcomingTalks upcomingTalksContent, YouTubeVideos youtubeVideosContent ) {
+public record AuthorContent(Author author, UpcomingTalkApprovalStatus upcomingTalksContent, YouTubeVideos youtubeVideosContent ) {
 }
 
 
