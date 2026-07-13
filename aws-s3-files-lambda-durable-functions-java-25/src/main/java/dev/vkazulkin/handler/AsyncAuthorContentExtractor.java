@@ -31,8 +31,7 @@ public class AsyncAuthorContentExtractor extends DurableHandler<Author, AuthorCo
 		
 	    var authorContent = new AuthorContent(author, upcomingTalkApprovalStatus, youtubeVideos);
 		
-		this.writeAuthorContentToFile(authorContent);
-		
+	    ctx.step("writeAuthorContentToFile-step", Void.class, stepCtx -> this.writeAuthorContentToFile(authorContent), config);	
 	    return authorContent;
 	}
 }

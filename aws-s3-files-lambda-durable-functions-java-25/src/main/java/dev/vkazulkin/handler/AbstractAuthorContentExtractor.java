@@ -50,7 +50,7 @@ public interface AbstractAuthorContentExtractor {
 		return UpcomingTalks.getDefaultUpcomingTalks();
 	}
 	
-	public default void writeAuthorContentToFile(AuthorContent authorContent) {
+	public default Void writeAuthorContentToFile(AuthorContent authorContent) {
 		LOGGER.info("invoked writeAuthorContentToFile");
 		var authorContentAsJson = OBJECT_MAPPER.writeValueAsString(authorContent);
         var fileName= authorContent.author().firstName()+"-"+authorContent.author().lastName()+".json";
@@ -63,6 +63,7 @@ public interface AbstractAuthorContentExtractor {
 		} catch (IOException ex) {
 			LOGGER.error("error wrting to the file", ex);
 		}
+		return null;
 	}
 	
 	public default UpcomingTalkApprovalStatus waitForUpcomingTalksApproval(DurableContext ctx, Author author, UpcomingTalks upcomingTalks) {
