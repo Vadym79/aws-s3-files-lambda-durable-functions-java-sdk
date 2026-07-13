@@ -14,11 +14,17 @@ API Gateway (API Key auth)
                                                     └── Reads from S3 bucket
 
 AuthorContentExtractor (Durable Lambda)       ← sync steps
-AsyncAuthorContentExtractor (Durable Lambda)  ← parallel async steps
     ├── step: searchForUpcomingTalks
     ├── step: searchForYouTubeVideos
-    ├── writes result to S3Files mount (/mnt/workspace)
-    └── waitForCallback: upcoming talks approval
+    ├── waitForCallback: upcoming talks approval
+    └── step: writeAuthorContentToFile (writes result to S3Files mount (/mnt/workspace))
+    
+AsyncAuthorContentExtractor (Durable Lambda)  ← parallel async steps
+    ├── async step: searchForUpcomingTalks
+    ├── async step: searchForYouTubeVideos
+    ├── waitForCallback: upcoming talks approval
+    └── step: writeAuthorContentToFile (writes result to S3Files mount (/mnt/workspace))
+```
 ```
 
 ## Lambda Functions
