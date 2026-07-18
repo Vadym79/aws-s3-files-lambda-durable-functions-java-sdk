@@ -25,7 +25,6 @@ AsyncAuthorContentExtractor (Durable Lambda)  ← parallel async steps
     ├── waitForCallback: upcoming talks approval
     └── step: writeAuthorContentToFile (writes result to S3Files mount (/mnt/workspace))
 ```
-```
 
 ## Lambda Functions
 
@@ -48,7 +47,7 @@ AsyncAuthorContentExtractor (Durable Lambda)  ← parallel async steps
 - Java 25
 - Apache Maven
 - AWS SAM CLI
-- AWS account with access to Lambda Durable Functions and S3 Files (preview features)
+- AWS account with access to Lambda Durable Functions and S3 Files
 
 ## Build
 
