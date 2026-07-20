@@ -1,4 +1,4 @@
-# AWS S3 Files + Lambda Durable Functions (using wait for callback) — Java 25
+# Amazon S3 Files and AWS Lambda Durable Functions (using wait for callback) with Java SDK
 
 A sample project demonstrating **AWS Lambda Durable Functions** with **Amazon S3 Files** (S3-backed filesystem) using **Java 25** and the AWS SAM framework.
 
