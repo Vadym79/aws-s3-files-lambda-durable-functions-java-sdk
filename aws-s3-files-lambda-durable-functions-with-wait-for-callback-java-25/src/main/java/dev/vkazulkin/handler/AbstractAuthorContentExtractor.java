@@ -9,11 +9,16 @@ import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import dev.vkazulkin.entity.Author;
 import dev.vkazulkin.entity.AuthorContent;
+import dev.vkazulkin.entity.UpcomingTalkApprovalStatus;
 import dev.vkazulkin.entity.UpcomingTalks;
 import dev.vkazulkin.entity.YouTubeVideos;
+import software.amazon.lambda.durable.DurableContext;
+import software.amazon.lambda.durable.config.CallbackConfig;
 import software.amazon.lambda.durable.config.StepConfig;
 import software.amazon.lambda.durable.config.StepSemantics;
+import software.amazon.lambda.durable.config.WaitForCallbackConfig;
 import software.amazon.lambda.durable.retry.JitterStrategy;
 import software.amazon.lambda.durable.retry.RetryStrategies;
 import tools.jackson.databind.ObjectMapper;
@@ -26,7 +31,6 @@ public interface AbstractAuthorContentExtractor {
 	
 	public default StepConfig getStepConfig() {
 		return StepConfig.builder()
-				 .serDes(null)
 				.semanticsPerRetry(StepSemantics.AT_LEAST_ONCE_PER_RETRY)
 				.retryStrategy(RetryStrategies.exponentialBackoff(
 						3,                        // max attempts
@@ -61,5 +65,29 @@ public interface AbstractAuthorContentExtractor {
 			LOGGER.error("error wrting to the file", ex);
 		}
 		return null;
+	}
+	
+	public default UpcomingTalkApprovalStatus waitForUpcomingTalksApproval(DurableContext ctx, Author author, UpcomingTalks upcomingTalks) {
+		LOGGER.info("invoked waitForUpcomingTalksApproval");
+	    var waitCallback= WaitForCallbackConfig.builder()
+	    	  .callbackConfig(CallbackConfig.builder().timeout(Duration.ofHours(1))
+	    			  .build())
+			  .build();
+			    
+		var response= ctx.waitForCallback(
+	                "wait-for-approval",
+	                UpcomingTalkApprovalStatus.class,
+	                (callbackId, stepCtx) -> this.sendApprovalRequest(callbackId, author, upcomingTalks),
+	                waitCallback);
+         
+		LOGGER.info("received callback response "+response);
+		
+		return response;
+
+	}
+	
+	private void sendApprovalRequest(String callbackId, Author author, UpcomingTalks upcomingTalks) {
+		LOGGER.info("get approval for the talk of  "+ author+ " for the talks "+upcomingTalks+
+				" with the callback id "+callbackId);
 	}
 }

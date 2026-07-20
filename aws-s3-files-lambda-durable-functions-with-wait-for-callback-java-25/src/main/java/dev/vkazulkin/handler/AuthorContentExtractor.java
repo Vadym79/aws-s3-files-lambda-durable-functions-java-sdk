@@ -21,7 +21,9 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 		var upcomingTalks= ctx.step("searchForUpcomingTalks-step", UpcomingTalks.class, stepCtx -> this.searchForUpcomingTalks(), config);
 		var	youtubeVideos= ctx.step("searchForYouTubeVideos-step", YouTubeVideos.class, stepCtx -> this.searchForYouTubeVideos(), config);
 			    	
-		var authorContent = new AuthorContent(author, upcomingTalks, youtubeVideos);
+		var upcomingTalkApprovalStatus = this.waitForUpcomingTalksApproval(ctx, author, upcomingTalks);
+		
+	    var authorContent = new AuthorContent(author, upcomingTalkApprovalStatus, youtubeVideos);
 		
 	    ctx.step("writeAuthorContentToFile-step", Void.class, stepCtx -> this.writeAuthorContentToFile(authorContent), config);
 		

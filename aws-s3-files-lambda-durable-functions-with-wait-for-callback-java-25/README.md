@@ -1,4 +1,4 @@
-# AWS S3 Files + Lambda Durable Functions — Java 25
+# AWS S3 Files + Lambda Durable Functions (using wait for callback) — Java 25
 
 A sample project demonstrating **AWS Lambda Durable Functions** with **Amazon S3 Files** (S3-backed filesystem) using **Java 25** and the AWS SAM framework.
 
@@ -16,11 +16,13 @@ API Gateway (API Key auth)
 AuthorContentExtractor (Durable Lambda)       ← sync steps
     ├── step: searchForUpcomingTalks
     ├── step: searchForYouTubeVideos
+    ├── waitForCallback: upcoming talks approval
     └── step: writeAuthorContentToFile (writes result to S3Files mount (/mnt/workspace))
     
 AsyncAuthorContentExtractor (Durable Lambda)  ← parallel async steps
     ├── async step: searchForUpcomingTalks
     ├── async step: searchForYouTubeVideos
+    ├── waitForCallback: upcoming talks approval
     └── step: writeAuthorContentToFile (writes result to S3Files mount (/mnt/workspace))
 ```
 
