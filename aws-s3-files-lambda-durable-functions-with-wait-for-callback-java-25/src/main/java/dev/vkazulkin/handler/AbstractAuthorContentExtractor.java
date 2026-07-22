@@ -69,16 +69,16 @@ public interface AbstractAuthorContentExtractor {
 	
 	public default UpcomingTalkApprovalStatus waitForUpcomingTalksApproval(DurableContext ctx, Author author, UpcomingTalks upcomingTalks) {
 		LOGGER.info("invoked waitForUpcomingTalksApproval");
-	    var waitCallback= WaitForCallbackConfig.builder()
+	    var waitCallbackConfig= WaitForCallbackConfig.builder()	
 	    	  .callbackConfig(CallbackConfig.builder().timeout(Duration.ofHours(1))
-	    			  .build())
+	    	  .build())
 			  .build();
 			    
 		var response= ctx.waitForCallback(
 	                "wait-for-approval",
 	                UpcomingTalkApprovalStatus.class,
 	                (callbackId, stepCtx) -> this.sendApprovalRequest(callbackId, author, upcomingTalks),
-	                waitCallback);
+	                waitCallbackConfig);
          
 		LOGGER.info("received callback response "+response);
 		

@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: >
-  VPC networking for S3 Files Lambda functions.
+  VPC networking for Lambda functions using S3 Files.
   Creates a VPC with private subnets (for Lambda + mount targets),
   a public subnet with NAT gateway (for internet access to Bedrock and Bedrock AgentCore Web Search Tool),
   and security groups for NFS traffic.
