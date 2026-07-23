@@ -1,0 +1,425 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AWSLambdaDurableFunctionsS3FilesSpringAIAgentCoreGatewayWebSearchToolAPI
+  Sample SAM Template
+
+Parameters:
+  Stage:
+    Type: String
+    Default: prod
+
+Globals:
+  Function:
+    CodeUri: target/aws-s3-files-lambda-durable-functions-spring-ai-agentcore-gateway-web-search-tool-1.0.0-SNAPSHOT.jar
+    #Handler: com.amazonaws.serverless.proxy.spring.SpringDelegatingLambdaContainerHandler
+    Runtime: java25
+    #SnapStart:
+      #ApplyOn: PublishedVersions
+    Timeout: 240
+    MemorySize: 1536
+    Architectures:
+      #- arm64
+      - x86_64  
+    #Tracing: Active
+    Environment:
+      Variables:
+        JAVA_TOOL_OPTIONS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+        REGION: !Sub ${AWS::Region}
+             
+Resources:
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Stage
+      #TracingEnabled: true
+      Name: AWSLambdaDurableFunctionsS3FilesSpringAIAgentCoreGatewayWebSearchToolAPI
+      Description: API for AWSLambdaDurableFunctionsS3FilesSpringAIAgentCoreGatewayWebSearchTool
+      AccessLogSetting:
+        DestinationArn: !Sub ${MyApiLogGroup.Arn} # This Log Group is already created within our SAM Template
+        Format: "{'integrationLatency':'$context.integrationLatency', 'latency':'$context.responseLatency', 'requestId':'$context.requestId', 'ip': '$context.identity.sourceIp', 'caller':'$context.identity.caller', 'user':'$context.identity.user','requestTime':'$context.requestTime', 'xrayTraceId':'$context.xrayTraceId', 'wafResponseCode':'$context.wafResponseCode', 'httpMethod':'$context.httpMethod','resourcePath':'$context.resourcePath', 'status':'$context.status','protocol':'$context.protocol', 'responseLength':'$context.responseLength' }"
+      MethodSettings:
+        - MetricsEnabled: True
+          ResourcePath: '/*'
+          HttpMethod: '*'
+      Auth:
+        ApiKeyRequired: true  # sets for all methods
+
+
+  MyApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/apigateway/${MyApi}"
+      RetentionInDays: 7
+
+  MyApiUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn:
+      - MyApiStage
+    Properties:
+      ApiStages:
+        - ApiId: !Ref MyApi
+          Stage: !Ref Stage
+      UsagePlanName: AWSLambdaDurableFunctionsS3FilesSpringAIAgentCoreGatewayWebSearchToolUsagePlan
+      Description: Usage plan for AWSLambdaDurableFunctionsS3FilesSpringAIAgentCoreGatewayWebSearchToolAPI
+      Quota:
+        Limit: 100
+        Period: DAY
+      Throttle:
+        RateLimit:  10
+        BurstLimit: 50
+
+  MyApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    DependsOn:
+      - MyApiStage
+    Properties:
+      Name: "AWSLambdaDurableFunctionsS3FilesSpringAIAgentCoreGatewayWebSearchToolAPIKey"
+      Description: "AWSLambdaDurableFunctionsS3FilesSpringAIAgentCoreGatewayWebSearchTool API Key"
+      Enabled: true
+      GenerateDistinctId: false
+      Value: a6ZbcDefQW12BN56WasQa
+      StageKeys:
+        - RestApiId: !Ref MyApi
+          StageName: !Ref Stage
+
+  MyApiUsagePlanKey:
+    Type: "AWS::ApiGateway::UsagePlanKey"
+    DependsOn:
+      - MyApi
+    Properties:
+      KeyId: !Ref MyApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref MyApiUsagePlan
+
+
+  NetworkingStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: src/main/resources/stacks/network.yaml
+
+  WorkspaceBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName : vadym-s3-files-agentcore-gateway-web-search-tool-workspace
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  S3FilesRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /service-role/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowS3FilesAssumeRole
+            Effect: Allow
+            Principal:
+              Service: elasticfilesystem.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              ArnLike:
+                aws:SourceArn: !Sub 'arn:aws:s3files:${AWS::Region}:${AWS::AccountId}:file-system/*'
+      Policies:
+        - PolicyName: S3FilesBucketAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: S3BucketPermissions
+                Effect: Allow
+                Action:
+                  - s3:ListBucket*
+                Resource: !GetAtt WorkspaceBucket.Arn
+                Condition:
+                  StringEquals:
+                    aws:ResourceAccount: !Ref AWS::AccountId
+              - Sid: S3ObjectPermissions
+                Effect: Allow
+                Action:
+                  - s3:AbortMultipartUpload
+                  - s3:DeleteObject*
+                  - s3:GetObject*
+                  - s3:List*
+                  - s3:PutObject*
+                Resource: !Sub '${WorkspaceBucket.Arn}/*'
+                Condition:
+                  StringEquals:
+                    aws:ResourceAccount: !Ref AWS::AccountId
+
+  S3FileSystem:
+    Type: AWS::S3Files::FileSystem
+    Properties:
+      Bucket: !GetAtt WorkspaceBucket.Arn
+      RoleArn: !GetAtt S3FilesRole.Arn
+      AcceptBucketWarning: true
+
+  MountTargetA:
+    Type: AWS::S3Files::MountTarget
+    Properties:
+      FileSystemId: !GetAtt S3FileSystem.FileSystemId
+      SubnetId: !GetAtt NetworkingStack.Outputs.PrivateSubnetAId
+      SecurityGroups:
+        - !GetAtt NetworkingStack.Outputs.MountTargetSGId
+
+  MountTargetB:
+    Type: AWS::S3Files::MountTarget
+    Properties:
+      FileSystemId: !GetAtt S3FileSystem.FileSystemId
+      SubnetId: !GetAtt NetworkingStack.Outputs.PrivateSubnetBId
+      SecurityGroups:
+        - !GetAtt NetworkingStack.Outputs.MountTargetSGId
+
+  S3FilesAccessPoint:
+    Type: AWS::S3Files::AccessPoint
+    Properties:
+      FileSystemId: !GetAtt S3FileSystem.FileSystemId
+      PosixUser:
+        Uid: '1000'
+        Gid: '1000'
+      RootDirectory:
+        Path: /lambda
+        CreationPermissions:
+          OwnerUid: '1000'
+          OwnerGid: '1000'
+          Permissions: '755'
+
+
+  AuthorContentExtractorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: AuthorContentWebSearchExtractor
+      #AutoPublishAlias: liveVersion
+      Handler: dev.vkazulkin.handler.AuthorContentExtractor::handleRequest
+      Environment:
+        Variables:
+          UpcomingTalksWebSearchExtractorFunctionArn: !GetAtt UpcomingTalksWebSearchExtractorFunction.Arn
+          YouTubeVideosWebSearchExtractorFunctionArn: !GetAtt YouTubeVideosWebSearchExtractorFunction.Arn
+          WriteContentToFileFunctionArn: !GetAtt WriteContentToFileFunction.Arn
+      DurableConfig:
+        ExecutionTimeout: 3600
+        RetentionPeriodInDays: 7
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: InvokeLambda
+              Effect: Allow
+              Action: lambda:InvokeFunction
+              Resource:
+                - !GetAtt YouTubeVideosWebSearchExtractorFunction.Arn
+                - !Sub '${YouTubeVideosWebSearchExtractorFunction.Arn}:*'
+                - !GetAtt UpcomingTalksWebSearchExtractorFunction.Arn
+                - !Sub '${UpcomingTalksWebSearchExtractorFunction.Arn}:*'
+                - !GetAtt WriteContentToFileFunction.Arn
+                - !Sub '${WriteContentToFileFunction.Arn}:*'
+
+  AuthorContentExtractorFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${AuthorContentExtractorFunction}"
+      RetentionInDays: 7
+
+
+  GetAuthorContentResultFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetAuthorContentWebSearchResult
+      #AutoPublishAlias: liveVersion
+      Handler: dev.vkazulkin.handler.GetAuthorContentResult::handleRequest
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref WorkspaceBucket
+          S3_FOLDER_NAME: lambda
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref WorkspaceBucket
+      Events:
+        GetRequestById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /author/content/result/{firstname}/{lastname}
+            Method: get
+
+  GetAuthorContentResultFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetAuthorContentResultFunction}"
+      RetentionInDays: 7
+
+  YouTubeVideosWebSearchExtractorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: YouTubeVideosWebSearchExtractor
+      #AutoPublishAlias: liveVersion
+      #Handler: com.amazonaws.serverless.proxy.spring.SpringDelegatingLambdaContainerHandler
+      Handler: dev.vkazulkin.handler.YouTubeVideosStreamLambdaHandler::handleRequest
+      Environment:
+        Variables:
+          MAIN_CLASS: dev.vkazulkin.Application
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: AllowedCognitoActions
+              Effect: Allow
+              Action:
+                - cognito-idp:ListUserPools
+                - cognito-idp:ListUserPoolClients
+                - cognito-idp:DescribeUserPoolClient
+              Resource: '*'
+            - Sid: InvokeGateway
+              Effect: Allow
+              Action:
+                - bedrock-agentcore:*Gateway*
+                - bedrock-agentcore:*WorkloadIdentity
+                - bedrock-agentcore:*CredentialProvider
+                - bedrock-agentcore:*Token*
+                - bedrock-agentcore:*Access*
+              Resource: 'arn:aws:bedrock-agentcore:*:*:*gateway*'
+            - Sid: InvokeRuntime
+              Effect: Allow
+              Action:
+                - bedrock-agentcore:*Runtime*
+                - bedrock-agentcore:*WorkloadIdentity
+                - bedrock-agentcore:*CredentialProvider
+                - bedrock-agentcore:*Token*
+                - bedrock-agentcore:*Access*
+              Resource: 'arn:aws:bedrock-agentcore:*:*:*runtime*'
+            - Sid: InvokeBedrock
+              Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+                - bedrock:Converse
+                - bedrock:ConverseStream
+              Resource: '*'
+      Events:
+        PostRequest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /author/content/youtubeVideos
+            Method: post
+
+
+
+  YouTubeVideosWebSearchExtractorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${YouTubeVideosWebSearchExtractorFunction}"
+      RetentionInDays: 7
+
+  UpcomingTalksWebSearchExtractorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: UpcomingTalksWebSearchExtractor
+      #AutoPublishAlias: liveVersion
+      #Handler: com.amazonaws.serverless.proxy.spring.SpringDelegatingLambdaContainerHandler
+      Handler: dev.vkazulkin.handler.UpcomingTalksStreamLambdaHandler::handleRequest
+      Environment:
+        Variables:
+          MAIN_CLASS: dev.vkazulkin.Application
+
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: AllowedCognitoActions
+              Effect: Allow
+              Action:
+                - cognito-idp:ListUserPools
+                - cognito-idp:ListUserPoolClients
+                - cognito-idp:DescribeUserPoolClient
+              Resource: '*'
+            - Sid: InvokeGateway
+              Effect: Allow
+              Action:
+                - bedrock-agentcore:InvokeGateway
+                - bedrock-agentcore:*WorkloadIdentity
+                - bedrock-agentcore:*CredentialProvider
+                - bedrock-agentcore:*Token*
+                - bedrock-agentcore:*Access*
+              Resource: 'arn:aws:bedrock-agentcore:*:*:*gateway*'
+            - Sid: InvokeRuntime
+              Effect: Allow
+              Action:
+                - bedrock-agentcore:*Runtime*
+                - bedrock-agentcore:*WorkloadIdentity
+                - bedrock-agentcore:*CredentialProvider
+                - bedrock-agentcore:*Token*
+                - bedrock-agentcore:*Access*
+              Resource: 'arn:aws:bedrock-agentcore:*:*:*runtime*'
+            - Sid: InvokeBedrock
+              Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+                - bedrock:InvokeModelWithResponseStream
+                - bedrock:Converse
+                - bedrock:ConverseStream
+              Resource: '*'
+      Events:
+        PostRequest:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /author/content/upcomingTalks
+            Method: post
+
+
+  UpcomingTalksWebSearchExtractorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${UpcomingTalksWebSearchExtractorFunction}"
+      RetentionInDays: 7
+
+  WriteContentToFileFunction:
+    Type: AWS::Serverless::Function
+    DependsOn:
+      - MountTargetA
+      - MountTargetB
+    Properties:
+      FunctionName: WriteContentFromWebSearchToFile
+      #AutoPublishAlias: liveVersion
+      Handler: dev.vkazulkin.handler.WriteContentToFile::handleRequest
+      Environment:
+        Variables:
+          WORKSPACE_MOUNT: /mnt/workspace
+      VpcConfig:
+        SecurityGroupIds:
+          - !GetAtt NetworkingStack.Outputs.LambdaSGId
+        SubnetIds:
+          - !GetAtt NetworkingStack.Outputs.PrivateSubnetAId
+          - !GetAtt NetworkingStack.Outputs.PrivateSubnetBId
+      FileSystemConfigs:
+        - Arn: !GetAtt S3FilesAccessPoint.AccessPointArn
+          LocalMountPath: /mnt/workspace
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: MountS3Files
+              Effect: Allow
+              Action:
+                - s3files:ClientMount
+                - s3files:ClientWrite
+                - s3files:ClientRootAccess
+              Resource: !GetAtt S3FileSystem.FileSystemArn
+
+  WriteContentToFileLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${WriteContentToFileFunction}"
+      RetentionInDays: 7
+
+Outputs:
+  AWSLambdaDurableFunctionsS3FilesSpringAIAgentCoreGatewayWebSearchToolAPIEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage for AWS Lambda Durable Functions S3Files Spring AI and AgentCore Gateway Web Search"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/prod/"
