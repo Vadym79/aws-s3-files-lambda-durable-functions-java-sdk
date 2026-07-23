@@ -24,12 +24,8 @@ Globals:
     Environment:
       Variables:
         #JAVA_TOOL_OPTIONS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
-        WORKSPACE_MOUNT: /mnt/workspace
-        S3_BUCKET_NAME: !Ref WorkspaceBucket
-        S3_FOLDER_NAME: lambda
         REGION: !Sub ${AWS::Region}
-        
-             
+                    
 Resources:
   MyApi:
     Type: AWS::Serverless::Api
@@ -238,8 +234,12 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       FunctionName: GetAuthorContentResultOrchestrator
-      #AutoPublishAlias: liveVersion
       Handler: dev.vkazulkin.handler.GetAuthorContentResult::handleRequest
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref WorkspaceBucket
+          S3_FOLDER_NAME: lambda
+      #AutoPublishAlias: liveVersion
       Policies:
         - S3ReadPolicy:
             BucketName: !Ref WorkspaceBucket
@@ -294,6 +294,9 @@ Resources:
       FunctionName: WriteContentToFile
       #AutoPublishAlias: liveVersion
       Handler: dev.vkazulkin.handler.WriteContentToFile::handleRequest
+      Environment:
+         Variables:
+           WORKSPACE_MOUNT: /mnt/workspace
       VpcConfig:
         SecurityGroupIds:
           - !GetAtt NetworkingStack.Outputs.LambdaSGId
