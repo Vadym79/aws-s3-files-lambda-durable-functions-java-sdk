@@ -2,7 +2,6 @@ package dev.vkazulkin.handler;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 
@@ -55,8 +54,8 @@ public interface AbstractAuthorContentExtractor {
 		LOGGER.info("invoked writeAuthorContentToFile");
 		var authorContentAsJson = OBJECT_MAPPER.writeValueAsString(authorContent);
         var fileName= authorContent.author().firstName()+"-"+authorContent.author().lastName()+".json";
-		Path path = Paths.get(WORKSPACE_MOUNT, fileName);
-		byte[] strToBytes = authorContentAsJson.getBytes();
+		var path = Paths.get(WORKSPACE_MOUNT, fileName);
+		var strToBytes = authorContentAsJson.getBytes();
 		LOGGER.info("saving result to: "+path);
 
 		try {

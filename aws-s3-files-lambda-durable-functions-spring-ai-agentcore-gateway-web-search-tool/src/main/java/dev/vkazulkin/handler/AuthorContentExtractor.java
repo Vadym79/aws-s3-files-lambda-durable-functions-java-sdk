@@ -7,11 +7,9 @@ import org.slf4j.LoggerFactory;
 import dev.vkazulkin.entity.*;
 
 import software.amazon.lambda.durable.DurableContext;
-import software.amazon.lambda.durable.DurableFuture;
 import software.amazon.lambda.durable.DurableHandler;
 import software.amazon.lambda.durable.config.CompletionConfig;
 import software.amazon.lambda.durable.config.ParallelConfig;
-import software.amazon.lambda.durable.model.ParallelResult;
 
 
 public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent> {
@@ -38,19 +36,19 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 
 	    var parallel = ctx.parallel("parallel-search", config);
 
-		DurableFuture<UpcomingTalks> upcomingTalksFuture = parallel.branch("searchForUpcomingTalks-parallel-step",
+		var upcomingTalksFuture = parallel.branch("searchForUpcomingTalks-parallel-step",
 				UpcomingTalks.class, branchCtx -> {
 			return branchCtx.invoke("searchForUpcomingTalks-step",
 					UPCOMING_TALKS_WEB_SEARCH_EXTRACTOR_FUNCTION_ARN, author, UpcomingTalks.class);
 		});
 
-		DurableFuture<YouTubeVideos> youtubeVideosFuture = parallel.branch("searchForYouTubeVideos-parallel-step",
+		var youtubeVideosFuture = parallel.branch("searchForYouTubeVideos-parallel-step",
 				YouTubeVideos.class, branchCtx -> {
 			return branchCtx.invoke("searchForYouTubeVideos-step",
 					YOUTUBE_VIDEOS_WEB_SEARCH_EXTRACTOR_FUNCTION_ARN, author, YouTubeVideos.class);
 		});
 
-		ParallelResult result = parallel.get();
+		var result = parallel.get();
 		LOGGER.info("result: "+result);
 		
 		var upcomingTalks=upcomingTalksFuture.get();
@@ -61,7 +59,7 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 		var authorContent = new AuthorContent(author, upcomingTalks, youtubeVideos);
 
 		LOGGER.info("invoke write content to file");
-		var writeToFileResult= ctx.invoke("writeToFile-step",
+		ctx.invoke("writeToFile-step",
 				WRITE_CONTENT_TO_FILE_FUNCTION_ARN, authorContent, Void.class);
 		
 		LOGGER.info("finished orchestration");

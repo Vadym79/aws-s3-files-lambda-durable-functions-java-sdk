@@ -6,7 +6,6 @@ import dev.vkazulkin.entity.*;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.slf4j.Logger;
@@ -26,8 +25,8 @@ public class WriteContentToFile implements RequestHandler<AuthorContent, Void> {
 	    LOGGER.info("author content: "+authorContent);
 		var authorContentAsJson = objectMapper.writeValueAsString(authorContent);
         var fileName= authorContent.author().firstName()+"-"+authorContent.author().lastName()+".json";
-		Path path = Paths.get(WORKSPACE_MOUNT, fileName);
-		byte[] strToBytes = authorContentAsJson.getBytes();
+		var path = Paths.get(WORKSPACE_MOUNT, fileName);
+		var strToBytes = authorContentAsJson.getBytes();
 		LOGGER.info("saving result to: "+path);
 
 		try {
