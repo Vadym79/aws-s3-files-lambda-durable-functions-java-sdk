@@ -14,11 +14,11 @@ import org.slf4j.LoggerFactory;
 import tools.jackson.databind.ObjectMapper;
 
 
-public class WriteContentToFile implements RequestHandler<AuthorContent, Void> {
+public class WriteAuthorContentToFile implements RequestHandler<AuthorContent, Void> {
 	
 	private final ObjectMapper objectMapper = new ObjectMapper();
 	private static final String WORKSPACE_MOUNT  = System.getenv("WORKSPACE_MOUNT");
-	public static final Logger LOGGER = LoggerFactory.getLogger(WriteContentToFile.class);
+	public static final Logger LOGGER = LoggerFactory.getLogger(WriteAuthorContentToFile.class);
 
 	@Override
 	public Void handleRequest(AuthorContent authorContent, Context context) {

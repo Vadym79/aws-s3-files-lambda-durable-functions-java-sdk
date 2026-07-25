@@ -16,7 +16,7 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 
 	private static final String UPCOMING_TALKS_EXTRACTOR_FUNCTION_ARN  = System.getenv("UpcomingTalksExtractorFunctionArn");
 	private static final String YOUTUBE_VIDEOS_EXTRACTOR_FUNCTION_ARN  = System.getenv("YouTubeVideosExtractorFunctionArn");
-	private static final String WRITE_CONTENT_TO_FILE_FUNCTION_ARN  = System.getenv("WriteContentToFileFunctionArn");
+	private static final String WRITE_AUTHOR_CONTENT_TO_FILE_FUNCTION_ARN  = System.getenv("WriteAuthorContentToFileFunctionArn");
 
 	public static final Logger LOGGER = LoggerFactory.getLogger(AuthorContentExtractor.class);
 
@@ -27,7 +27,7 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 		LOGGER.info("author "+author);
 		LOGGER.info("UpcomingTalksExtractorFunctionArn "+UPCOMING_TALKS_EXTRACTOR_FUNCTION_ARN);
 		LOGGER.info("YouTubeVideosExtractorFunctionArn "+YOUTUBE_VIDEOS_EXTRACTOR_FUNCTION_ARN);
-		LOGGER.info("WriteContentToFileFunctionArn "+WRITE_CONTENT_TO_FILE_FUNCTION_ARN);
+		LOGGER.info("WriteAuthorContentToFileFunctionArn "+WRITE_AUTHOR_CONTENT_TO_FILE_FUNCTION_ARN);
 
 		var config = ParallelConfig.builder()
 				.maxConcurrency(5)
@@ -58,9 +58,9 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 	    
 		var authorContent = new AuthorContent(author, upcomingTalks, youtubeVideos);
 
-		LOGGER.info("invoke write content to file");
-		ctx.invoke("writeToFile-step",
-				WRITE_CONTENT_TO_FILE_FUNCTION_ARN, authorContent, Void.class);
+		LOGGER.info("invoke write author content to file");
+		ctx.invoke("writeAuthorContentToFile-step",
+				WRITE_AUTHOR_CONTENT_TO_FILE_FUNCTION_ARN, authorContent, Void.class);
 		
 		LOGGER.info("finished orchestration");
 	    return authorContent;

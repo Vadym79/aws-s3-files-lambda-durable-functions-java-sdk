@@ -204,7 +204,7 @@ Resources:
         Variables:
           UpcomingTalksExtractorFunctionArn: !GetAtt UpcomingTalksExtractorFunction.Arn
           YouTubeVideosExtractorFunctionArn: !GetAtt YouTubeVideosExtractorFunction.Arn
-          WriteContentToFileFunctionArn: !GetAtt WriteContentToFileFunction.Arn
+          WriteAuthorContentToFileFunctionArn: !GetAtt WriteAuthorContentToFileFunction.Arn
       DurableConfig:
         ExecutionTimeout: 3600
         RetentionPeriodInDays: 7
@@ -219,8 +219,8 @@ Resources:
                   - !Sub '${YouTubeVideosExtractorFunction.Arn}:*'
                   - !GetAtt UpcomingTalksExtractorFunction.Arn
                   - !Sub '${UpcomingTalksExtractorFunction.Arn}:*'
-                  - !GetAtt WriteContentToFileFunction.Arn
-                  - !Sub '${WriteContentToFileFunction.Arn}:*'
+                  - !GetAtt WriteAuthorContentToFileFunction.Arn
+                  - !Sub '${WriteAuthorContentToFileFunction.Arn}:*'
 
 
   AuthorContentExtractorFunctionLogGroup:
@@ -285,15 +285,15 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${UpcomingTalksExtractorFunction}"
       RetentionInDays: 7
 
-  WriteContentToFileFunction:
+  WriteAuthorContentToFileFunction:
     Type: AWS::Serverless::Function
     DependsOn:
       - MountTargetA
       - MountTargetB
     Properties:
-      FunctionName: WriteContentToFile
+      FunctionName: WriteAuthorContentToFile
       #AutoPublishAlias: liveVersion
-      Handler: dev.vkazulkin.handler.WriteContentToFile::handleRequest
+      Handler: dev.vkazulkin.handler.WriteAuthorContentToFile::handleRequest
       Environment:
          Variables:
            WORKSPACE_MOUNT: /mnt/workspace
@@ -317,10 +317,10 @@ Resources:
                 - s3files:ClientRootAccess
               Resource: !GetAtt S3FileSystem.FileSystemArn
 
-  WriteContentToFileLogGroup:
+  WriteAuthorContentToFileLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${WriteContentToFileFunction}"
+      LogGroupName: !Sub "/aws/lambda/${WriteAuthorContentToFileFunction}"
       RetentionInDays: 7
 
 Outputs:

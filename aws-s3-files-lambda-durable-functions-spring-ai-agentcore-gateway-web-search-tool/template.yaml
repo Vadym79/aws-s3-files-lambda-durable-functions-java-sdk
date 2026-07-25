@@ -205,7 +205,7 @@ Resources:
         Variables:
           UpcomingTalksWebSearchExtractorFunctionArn: !GetAtt UpcomingTalksWebSearchExtractorFunction.Arn
           YouTubeVideosWebSearchExtractorFunctionArn: !GetAtt YouTubeVideosWebSearchExtractorFunction.Arn
-          WriteContentToFileFunctionArn: !GetAtt WriteContentToFileFunction.Arn
+          WriteAuthorContentToFileFunctionArn: !GetAtt WriteAuthorContentToFileFunction.Arn
       DurableConfig:
         ExecutionTimeout: 3600
         RetentionPeriodInDays: 7
@@ -220,8 +220,8 @@ Resources:
                 - !Sub '${YouTubeVideosWebSearchExtractorFunction.Arn}:*'
                 - !GetAtt UpcomingTalksWebSearchExtractorFunction.Arn
                 - !Sub '${UpcomingTalksWebSearchExtractorFunction.Arn}:*'
-                - !GetAtt WriteContentToFileFunction.Arn
-                - !Sub '${WriteContentToFileFunction.Arn}:*'
+                - !GetAtt WriteAuthorContentToFileFunction.Arn
+                - !Sub '${WriteAuthorContentToFileFunction.Arn}:*'
 
   AuthorContentExtractorFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -381,15 +381,15 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${UpcomingTalksWebSearchExtractorFunction}"
       RetentionInDays: 7
 
-  WriteContentToFileFunction:
+  WriteAuthorContentToFileFunction:
     Type: AWS::Serverless::Function
     DependsOn:
       - MountTargetA
       - MountTargetB
     Properties:
-      FunctionName: WriteContentFromWebSearchToFile
+      FunctionName: WriteAuthorContentFromWebSearchToFile
       #AutoPublishAlias: liveVersion
-      Handler: dev.vkazulkin.handler.WriteContentToFile::handleRequest
+      Handler: dev.vkazulkin.handler.WriteAuthorContentToFile::handleRequest
       Environment:
         Variables:
           WORKSPACE_MOUNT: /mnt/workspace
@@ -413,10 +413,10 @@ Resources:
                 - s3files:ClientRootAccess
               Resource: !GetAtt S3FileSystem.FileSystemArn
 
-  WriteContentToFileLogGroup:
+  WriteAuthorContentToFileLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub "/aws/lambda/${WriteContentToFileFunction}"
+      LogGroupName: !Sub "/aws/lambda/${WriteAuthorContentToFileFunction}"
       RetentionInDays: 7
 
 Outputs:
