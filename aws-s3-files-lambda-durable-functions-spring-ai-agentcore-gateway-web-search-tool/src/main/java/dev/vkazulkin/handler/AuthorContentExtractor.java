@@ -9,6 +9,8 @@ import dev.vkazulkin.entity.*;
 import software.amazon.lambda.durable.DurableContext;
 import software.amazon.lambda.durable.DurableHandler;
 import software.amazon.lambda.durable.config.CompletionConfig;
+import software.amazon.lambda.durable.config.InvokeConfig;
+import software.amazon.lambda.durable.config.NestingType;
 import software.amazon.lambda.durable.config.ParallelConfig;
 
 
@@ -31,21 +33,26 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 
 		var config = ParallelConfig.builder()
 				.maxConcurrency(5)
+				.nestingType(NestingType.NESTED)
 				.completionConfig(CompletionConfig.allCompleted())
 				.build();
+		
+		var invokeConfig=InvokeConfig.builder().build();
 
 	    var parallel = ctx.parallel("parallel-search", config);
 
 		var upcomingTalksFuture = parallel.branch("searchForUpcomingTalks-parallel-step",
 				UpcomingTalks.class, branchCtx -> {
 			return branchCtx.invoke("searchForUpcomingTalks-step",
-					UPCOMING_TALKS_WEB_SEARCH_EXTRACTOR_FUNCTION_ARN, author, UpcomingTalks.class);
+					UPCOMING_TALKS_WEB_SEARCH_EXTRACTOR_FUNCTION_ARN, author, 
+					UpcomingTalks.class, invokeConfig);
 		});
 
 		var youtubeVideosFuture = parallel.branch("searchForYouTubeVideos-parallel-step",
 				YouTubeVideos.class, branchCtx -> {
 			return branchCtx.invoke("searchForYouTubeVideos-step",
-					YOUTUBE_VIDEOS_WEB_SEARCH_EXTRACTOR_FUNCTION_ARN, author, YouTubeVideos.class);
+					YOUTUBE_VIDEOS_WEB_SEARCH_EXTRACTOR_FUNCTION_ARN, author, 
+					YouTubeVideos.class, invokeConfig);
 		});
 
 		var result = parallel.get();
@@ -60,7 +67,8 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 
 		LOGGER.info("invoke write author content to file");
 		ctx.invoke("writeAuthorContentToFile-step",
-				WRITE_AUTHOR_CONTENT_TO_FILE_FUNCTION_ARN, authorContent, Void.class);
+				WRITE_AUTHOR_CONTENT_TO_FILE_FUNCTION_ARN, authorContent, 
+				Void.class, invokeConfig);
 		
 		LOGGER.info("finished orchestration");
 	    return authorContent;
