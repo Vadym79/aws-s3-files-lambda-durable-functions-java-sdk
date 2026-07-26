@@ -14,10 +14,9 @@ import dev.vkazulkin.entity.UpcomingTalk;
 import dev.vkazulkin.entity.UpcomingTalks;
 
 
-public class UpcomingTalksExtractor
-		implements RequestHandler<Author, UpcomingTalks> {
+public class UpcomingTalksExtractor implements RequestHandler<Author, UpcomingTalks> {
 	
-   public static final Logger LOGGER = LoggerFactory.getLogger(UpcomingTalksExtractor.class);
+   private static final Logger LOGGER = LoggerFactory.getLogger(UpcomingTalksExtractor.class);
 
 	@Override
 	public UpcomingTalks handleRequest(Author author, Context context) {

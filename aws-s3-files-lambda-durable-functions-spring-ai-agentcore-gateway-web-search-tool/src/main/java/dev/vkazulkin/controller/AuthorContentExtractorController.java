@@ -1,9 +1,7 @@
 package dev.vkazulkin.controller;
 
 import dev.vkazulkin.entity.Author;
-import dev.vkazulkin.entity.UpcomingTalk;
 import dev.vkazulkin.entity.UpcomingTalks;
-import dev.vkazulkin.entity.YouTubeVideo;
 import dev.vkazulkin.entity.YouTubeVideos;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
@@ -44,7 +42,6 @@ import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Map;
-import java.util.Set;
 
 
 @RestController
@@ -68,9 +65,9 @@ public class AuthorContentExtractorController {
     
     private final CognitoIdentityProviderClient cognitoClient;
 
-    private static final ObjectMapper objectMapper = new ObjectMapper();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     
-    private static final Logger logger = LoggerFactory.getLogger(AuthorContentExtractorController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthorContentExtractorController.class);
  
     public AuthorContentExtractorController(ChatClient.Builder builder) {
         var options = ToolCallingChatOptions.builder()
@@ -90,9 +87,8 @@ public class AuthorContentExtractorController {
     		consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public YouTubeVideos searchForYouTubeVideos(@RequestBody Author author) {
-        logger.info("invoked searchForYouTubeVideos Lambda function with author "+author);
+        LOGGER.info("invoked searchForYouTubeVideos Lambda function with author "+author);
         return this.webSearch(author,"YouTube videos", 3 ,YouTubeVideos.class);
-        // return this.searchForYouTubeVideos();
     }
 
     
@@ -100,16 +96,15 @@ public class AuthorContentExtractorController {
     		consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public UpcomingTalks searchForUpcomingTalks(@RequestBody Author author) {
-        logger.info("invoked searchForUpcomingTalks Lambda function with author "+author);
+        LOGGER.info("invoked searchForUpcomingTalks Lambda function with author "+author);
         return webSearch(author, "upcoming talks", 3, UpcomingTalks.class);
-        //return this.searchForUpcomingTalks();
     }
 
     private <T> T webSearch(Author author, String searchTopic, int maxNumberOfResults, Class<T> clazz) {
     	var token = getAuthTokenViaHttpClient();
     	try (var client = McpClient.sync(getMcpClientTransport(token)).build()) {
  			client.initialize();
-            client.listTools().tools().forEach(tool -> logger.info("tool found: " + tool));
+            client.listTools().tools().forEach(tool -> LOGGER.info("tool found: " + tool));
 
             var mcpToolCallbackProvider = SyncMcpToolCallbackProvider.builder().mcpClients(client)
                     .build();
@@ -120,14 +115,13 @@ public class AuthorContentExtractorController {
                     Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.
                     """.formatted(searchTopic, author.firstName(), author.lastName(), maxNumberOfResults);
 
-            logger.info("prompt: " + prompt);
+            LOGGER.info("prompt: " + prompt);
             var response = this.chatClient.prompt().user(prompt)
             		//.advisors(AdvisorParams.ENABLE_NATIVE_STRUCTURED_OUTPUT)
                     .tools(mcpToolCallbackProvider.getToolCallbacks())
                     .call()
                     .entity(clazz);
-                    //.content();
-            logger.info("response: " + response);
+            LOGGER.info("response: " + response);
             return response;
         }
     }
@@ -144,26 +138,25 @@ public class AuthorContentExtractorController {
     }
 
 
-
     /**
      * returns authorization token required by the mcp client
      * @return authorization token
      */
     private String getAuthTokenViaHttpClient() {
         var userPool = getUserPool();
-        logger.info("user pool " + userPool);
+        LOGGER.info("user pool " + userPool);
         if(userPool == null) {
             throw new RuntimeException("cognito user pool with the name "+USER_POOL_NAME+ " is not found");
         }
         var userPoolClient = getUserPoolClient(userPool);
-        logger.info("user pool " + userPoolClient);
+        LOGGER.info("user pool " + userPoolClient);
 
         if(userPoolClient == null) {
             throw new RuntimeException("cognito user pool client with the name "+USER_POOL_CLIENT_NAME+ " is not found");
         }
 
         var userPoolClientType = describeUserPoolClient(userPoolClient);
-        logger.info("user pool client type " + userPoolClientType);
+        LOGGER.info("user pool client type " + userPoolClientType);
 
         if(userPoolClientType == null) {
             throw new RuntimeException("cognito user client type for the client "+USER_POOL_CLIENT_NAME+ " is not found");
@@ -171,14 +164,14 @@ public class AuthorContentExtractorController {
         var userPoolId = userPool.id();
         userPoolId = userPoolId.replace("_", "").toLowerCase();
         var url = "https://" + userPoolId + ".auth." + Region.US_EAST_1.id() + ".amazoncognito.com/oauth2/token";
-        logger.info("url: " + url);
+        LOGGER.info("url: " + url);
 
         var SCOPE_STRING = RESOURCE_SERVER_ID + "/*";
 
         var entity = "grant_type=client_credentials&" + "client_id=" + userPoolClientType.clientId() + "&"
                 + "client_secret=" + userPoolClientType.clientSecret() + "&" + "scope=" + SCOPE_STRING;
 
-        logger.info("entity " + entity);
+        LOGGER.info("entity " + entity);
         try (var httpClient = HttpClients.createDefault()) {
             var httpPost = ClassicRequestBuilder.post(url)
                     .setHeader("Content-Type", "application/x-www-form-urlencoded").setEntity(entity).build();
@@ -186,7 +179,7 @@ public class AuthorContentExtractorController {
 
         } catch (IOException e) {
             e.printStackTrace();
-            logger.error("error occured with the message: ", e.getMessage());
+            LOGGER.error("error occured with the message: ", e.getMessage());
         }
         return null;
     }
@@ -202,14 +195,14 @@ public class AuthorContentExtractorController {
             var request = ListUserPoolsRequest.builder().maxResults(10).build();
             var response = cognitoClient.listUserPools(request);
             for (var userPool : response.userPools()) {
-                logger.info("User pool " + userPool.name() + ", User ID " + userPool.id());
+                LOGGER.info("User pool " + userPool.name() + ", User ID " + userPool.id());
                 if (userPool.name().equals(USER_POOL_NAME)) {
                     return userPool;
                 }
             }
 
         } catch (CognitoIdentityProviderException e) {
-        	logger.error("error occured with the message: ", e.getMessage());
+        	LOGGER.error("error occured with the message: ", e.getMessage());
         }
         return null;
     }
@@ -226,14 +219,14 @@ public class AuthorContentExtractorController {
 
             var response = cognitoClient.listUserPoolClients(request);
             for (var userPoolClient : response.userPoolClients()) {
-                logger.info("User Pool Client Name " + userPoolClient.clientName() + ", User Pool Client ID "
+                LOGGER.info("User Pool Client Name " + userPoolClient.clientName() + ", User Pool Client ID "
                         + userPoolClient.clientId());
                 if (userPoolClient.clientName().equals(USER_POOL_CLIENT_NAME)) {
                     return userPoolClient;
                 }
             }
         } catch (CognitoIdentityProviderException e) {
-            logger.error("error occured with the message: ", e.getMessage());
+            LOGGER.error("error occured with the message: ", e.getMessage());
         }
         return null;
     }
@@ -262,14 +255,14 @@ public class AuthorContentExtractorController {
         public String handleResponse(ClassicHttpResponse response) throws HttpException, IOException {
             var inputStream = response.getEntity().getContent();
             var responseString = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
-            logger.info("response: " + responseString);
+            LOGGER.info("response: " + responseString);
 
-            var responseMap = objectMapper.readValue(responseString, new TypeReference<Map<String, Object>>() {});
+            var responseMap = OBJECT_MAPPER.readValue(responseString, new TypeReference<Map<String, Object>>() {});
             var token = (String) responseMap.get("access_token");
-            logger.info("token : " + token);
+            LOGGER.info("token : " + token);
 
             var expiresInSeconds = (Integer) responseMap.get("expires_in");
-            logger.info("token expires in seconds : " + expiresInSeconds);
+            LOGGER.info("token expires in seconds : " + expiresInSeconds);
             // add handling of the auth token expiration
 
             return token;

@@ -11,7 +11,7 @@ import software.amazon.lambda.durable.DurableHandler;
 
 public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent> implements AbstractAuthorContentExtractor {
 	  
-	public static final Logger LOGGER = LoggerFactory.getLogger(AuthorContentExtractor.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthorContentExtractor.class);
 	
 	@Override
 	public AuthorContent handleRequest(Author author, DurableContext ctx) {

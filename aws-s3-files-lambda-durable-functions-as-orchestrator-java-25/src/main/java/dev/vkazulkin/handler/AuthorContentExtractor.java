@@ -20,7 +20,7 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 	private static final String YOUTUBE_VIDEOS_EXTRACTOR_FUNCTION_ARN  = System.getenv("YouTubeVideosExtractorFunctionArn");
 	private static final String WRITE_AUTHOR_CONTENT_TO_FILE_FUNCTION_ARN  = System.getenv("WriteAuthorContentToFileFunctionArn");
 
-	public static final Logger LOGGER = LoggerFactory.getLogger(AuthorContentExtractor.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthorContentExtractor.class);
 
 	
 	@Override

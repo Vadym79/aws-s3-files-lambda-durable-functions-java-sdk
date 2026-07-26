@@ -16,15 +16,15 @@ import tools.jackson.databind.ObjectMapper;
 
 public class WriteAuthorContentToFile implements RequestHandler<AuthorContent, Void> {
 	
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	private static final String WORKSPACE_MOUNT  = System.getenv("WORKSPACE_MOUNT");
-	public static final Logger LOGGER = LoggerFactory.getLogger(WriteAuthorContentToFile.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(WriteAuthorContentToFile.class);
 
 	@Override
 	public Void handleRequest(AuthorContent authorContent, Context context) {
 	    LOGGER.info("invoked WriteContentToFile Lambda function with author "+authorContent);
 	    LOGGER.info("author content: "+authorContent);
-		var authorContentAsJson = objectMapper.writeValueAsString(authorContent);
+		var authorContentAsJson = OBJECT_MAPPER.writeValueAsString(authorContent);
         var fileName= authorContent.author().firstName()+"-"+authorContent.author().lastName()+".json";
 		var path = Paths.get(WORKSPACE_MOUNT, fileName);
 		var strToBytes = authorContentAsJson.getBytes();

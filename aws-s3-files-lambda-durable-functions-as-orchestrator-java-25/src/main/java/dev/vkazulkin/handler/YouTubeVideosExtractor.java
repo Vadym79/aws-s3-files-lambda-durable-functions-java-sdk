@@ -12,10 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class YouTubeVideosExtractor
-		implements RequestHandler<Author, YouTubeVideos> {
+public class YouTubeVideosExtractor implements RequestHandler<Author, YouTubeVideos> {
 
-	public static final Logger LOGGER = LoggerFactory.getLogger(YouTubeVideosExtractor.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(YouTubeVideosExtractor.class);
 	
 	@Override
 	public YouTubeVideos handleRequest(Author author, Context context) {

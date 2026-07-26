@@ -20,7 +20,7 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 	private static final String YOUTUBE_VIDEOS_WEB_SEARCH_EXTRACTOR_FUNCTION_ARN  = System.getenv("YouTubeVideosWebSearchExtractorFunctionArn");
 	private static final String WRITE_AUTHOR_CONTENT_TO_FILE_FUNCTION_ARN  = System.getenv("WriteAuthorContentToFileFunctionArn");
 
-	public static final Logger LOGGER = LoggerFactory.getLogger(AuthorContentExtractor.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthorContentExtractor.class);
 
 	
 	@Override
@@ -37,7 +37,7 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 				.completionConfig(CompletionConfig.allCompleted())
 				.build();
 		
-		var invokeConfig=InvokeConfig.builder().build();
+		var invokeConfig=InvokeConfig.builder().tenantId(UPCOMING_TALKS_WEB_SEARCH_EXTRACTOR_FUNCTION_ARN).build();
 
 	    var parallel = ctx.parallel("parallel-search", config);
 

@@ -312,7 +312,6 @@ Resources:
             Method: post
 
 
-
   YouTubeVideosWebSearchExtractorLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
