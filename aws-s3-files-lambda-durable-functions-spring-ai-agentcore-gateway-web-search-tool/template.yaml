@@ -304,7 +304,7 @@ Resources:
                 - bedrock:ConverseStream
               Resource: '*'
       Events:
-        PostRequest:
+        GetRequest:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
@@ -366,7 +366,7 @@ Resources:
                 - bedrock:ConverseStream
               Resource: '*'
       Events:
-        PostRequest:
+        GetRequest:
           Type: Api
           Properties:
             RestApiId: !Ref MyApi
