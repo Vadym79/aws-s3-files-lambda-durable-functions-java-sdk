@@ -97,7 +97,7 @@ public class AuthorContentWebSearchExtractorController {
             produces = MediaType.APPLICATION_JSON_VALUE)
     public UpcomingTalks searchForUpcomingTalks(@RequestBody Author author) {
         LOGGER.info("invoked searchForUpcomingTalks Lambda function with author "+author);
-        return webSearch(author, "upcoming talks", 3, UpcomingTalks.class);
+        return this.webSearch(author, "upcoming talks", 3, UpcomingTalks.class);
     }
 
     private <T> T webSearch(Author author, String searchTopic, int maxNumberOfResults, Class<T> clazz) {

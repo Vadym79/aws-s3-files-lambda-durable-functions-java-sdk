@@ -309,7 +309,7 @@ Resources:
           Properties:
             RestApiId: !Ref MyApi
             Path: /author/content/youtubeVideos
-            Method: post
+            Method: get
 
 
   YouTubeVideosWebSearchExtractorLogGroup:
@@ -371,7 +371,7 @@ Resources:
           Properties:
             RestApiId: !Ref MyApi
             Path: /author/content/upcomingTalks
-            Method: post
+            Method: get
 
 
   UpcomingTalksWebSearchExtractorLogGroup:

@@ -37,9 +37,9 @@ abstract class AuthorContentWebSearchExtractor implements RequestStreamHandler {
     	LOGGER.info("entered handleRequest");
     	var author = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
     	LOGGER.info("input stream "+author );    
-    	var proxyRequestEvent=getAwsProxyRequest(author);
+    	var proxyRequestEvent=this.getAwsProxyRequest(author);
 	    var response = handler.proxy(proxyRequestEvent, context);
-	    var body =response.getBody();
+	    var body = response.getBody();
 	    LOGGER.info("body "+body );
 	    try (var printStream = new PrintStream(outputStream, true, StandardCharsets.UTF_8)) {
 	        printStream.print(body);
@@ -69,8 +69,8 @@ abstract class AuthorContentWebSearchExtractor implements RequestStreamHandler {
     	var apiGatewayRequestIdentity= new ApiGatewayRequestIdentity();
     	apiGatewayRequestIdentity.setApiKey("blabla");
     	awsProxyRequestContext.setIdentity(apiGatewayRequestIdentity);
-    	
     	awsProxyRequest.setRequestContext(awsProxyRequestContext);
+    	
     	return awsProxyRequest;		   
 }
 
