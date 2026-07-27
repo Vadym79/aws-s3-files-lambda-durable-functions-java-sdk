@@ -1,6 +1,6 @@
 package dev.vkazulkin.handler;
 
-public class UpcomingTalksStreamLambdaHandler extends AuthorContentCustomStreamLambdaHandler {
+public class UpcomingTalksWebSearchExtractor extends AuthorContentWebSearchExtractor {
 
 	@Override
 	protected String getPath() {

@@ -14,7 +14,7 @@ AuthorContentExtractor (Durable Lambda Orchestrator)
        │
        ├──[parallel]──► UpcomingTalksWebSearchExtractor ──► AgentCore Gateway (MCP) ──► Bedrock Nova Pro
        │
-       └──────────────► WriteContentToFile ──► S3 Files (NFS mount via VPC)
+       └──────────────► WriteAuthorContentToFile ──► S3 Files (NFS mount via VPC)
                                                       │
 GetAuthorContentResult ◄──────────────────────────── S3 Bucket
 ```
@@ -36,9 +36,9 @@ GetAuthorContentResult ◄──────────────────
 | Function | Handler | Description |
 |---|---|---|
 | `AuthorContentWebSearchExtractor` | `AuthorContentExtractor` | Durable orchestrator — fans out parallel web searches, then writes results to file |
-| `YouTubeVideosWebSearchExtractor` | `YouTubeVideosStreamLambdaHandler` | Spring Boot Lambda — searches YouTube videos via AgentCore MCP Gateway |
-| `UpcomingTalksWebSearchExtractor` | `UpcomingTalksStreamLambdaHandler` | Spring Boot Lambda — searches upcoming conference talks via AgentCore MCP Gateway |
-| `WriteContentFromWebSearchToFile` | `WriteContentToFile` | Writes aggregated author content to S3 Files NFS mount (`/mnt/workspace`) |
+| `YouTubeVideosWebSearchExtractor` | `YouTubeVideosWebSearchExtractor` | Spring Boot Lambda — searches YouTube videos via AgentCore MCP Gateway |
+| `UpcomingTalksWebSearchExtractor` | `UpcomingTalksWebSearchExtractor` | Spring Boot Lambda — searches upcoming conference talks via AgentCore MCP Gateway |
+| `WriteAuthorContentFromWebSearchToFile` | `WriteAuthorContentToFile` | Writes aggregated author content to S3 Files NFS mount (`/mnt/workspace`) |
 | `GetAuthorContentWebSearchResult` | `GetAuthorContentResult` | Reads result JSON from S3 bucket and returns it via API Gateway |
 
 ## API Endpoints
@@ -99,7 +99,7 @@ Default region: `us-east-1`
 
 - **VPC** — private subnets + security groups (nested `network.yaml` stack)
 - **S3 Bucket** — `vadym-s3files-web-search-on-agentcore-workspace` (AES256, versioning, no public access)
-- **S3 Files FileSystem** — S3-backed NFS, mounted at `/mnt/workspace` in `WriteContentToFile` Lambda
+- **S3 Files FileSystem** — S3-backed NFS, mounted at `/mnt/workspace` in `WriteAuthorContentToFile` Lambda
 - **API Gateway** — REST API with API key auth, usage plan (100 req/day, 10 RPS rate, 50 burst)
 
 ## How It Works
@@ -108,5 +108,5 @@ Default region: `us-east-1`
 2. The orchestrator fans out two parallel branches using the Durable Functions SDK.
 3. Each branch invokes a Spring Boot Lambda that connects to AgentCore Gateway via MCP (Streamable HTTP transport), authenticating with a Cognito OAuth2 token.
 4. Spring AI sends a structured prompt to Amazon Bedrock Nova Pro, which calls the web search MCP tool and returns JSON-structured results.
-5. The orchestrator collects both results, then invokes `WriteContentToFile` which writes the aggregated `AuthorContent` JSON to the S3 Files NFS mount.
+5. The orchestrator collects both results, then invokes `WriteAuthorContentToFile` which writes the aggregated `AuthorContent` JSON to the S3 Files NFS mount.
 6. The file is immediately available in S3 and can be retrieved via `GetAuthorContentResult`.

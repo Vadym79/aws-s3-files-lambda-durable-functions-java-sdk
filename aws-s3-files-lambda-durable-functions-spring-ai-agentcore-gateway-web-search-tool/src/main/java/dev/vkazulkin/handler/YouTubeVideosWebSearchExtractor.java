@@ -1,6 +1,6 @@
 package dev.vkazulkin.handler;
 
-public class YouTubeVideosStreamLambdaHandler extends AuthorContentCustomStreamLambdaHandler {
+public class YouTubeVideosWebSearchExtractor extends AuthorContentWebSearchExtractor {
 
 	@Override
 	protected String getPath() {

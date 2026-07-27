@@ -263,7 +263,7 @@ Resources:
       FunctionName: YouTubeVideosWebSearchExtractor
       #AutoPublishAlias: liveVersion
       #Handler: com.amazonaws.serverless.proxy.spring.SpringDelegatingLambdaContainerHandler
-      Handler: dev.vkazulkin.handler.YouTubeVideosStreamLambdaHandler::handleRequest
+      Handler: dev.vkazulkin.handler.YouTubeVideosWebSearchExtractor::handleRequest
       Environment:
         Variables:
           MAIN_CLASS: dev.vkazulkin.Application
@@ -324,7 +324,7 @@ Resources:
       FunctionName: UpcomingTalksWebSearchExtractor
       #AutoPublishAlias: liveVersion
       #Handler: com.amazonaws.serverless.proxy.spring.SpringDelegatingLambdaContainerHandler
-      Handler: dev.vkazulkin.handler.UpcomingTalksStreamLambdaHandler::handleRequest
+      Handler: dev.vkazulkin.handler.UpcomingTalksWebSearchExtractor::handleRequest
       Environment:
         Variables:
           MAIN_CLASS: dev.vkazulkin.Application

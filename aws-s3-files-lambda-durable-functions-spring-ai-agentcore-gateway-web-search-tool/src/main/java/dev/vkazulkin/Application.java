@@ -6,10 +6,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 
-import dev.vkazulkin.controller.AuthorContentExtractorController;
+import dev.vkazulkin.controller.AuthorContentWebSearchExtractorController;
 
 
-@Import({AuthorContentExtractorController.class })
+@Import({AuthorContentWebSearchExtractorController.class })
 @SpringBootApplication
 public class Application {
 

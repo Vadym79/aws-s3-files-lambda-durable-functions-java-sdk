@@ -17,10 +17,9 @@ import com.amazonaws.services.lambda.runtime.RequestStreamHandler;
 
 import dev.vkazulkin.Application;
 
-
-abstract class AuthorContentCustomStreamLambdaHandler implements RequestStreamHandler {
+abstract class AuthorContentWebSearchExtractor implements RequestStreamHandler {
 	
-	private static final Logger LOGGER = LoggerFactory.getLogger(AuthorContentCustomStreamLambdaHandler.class);
+	private static final Logger LOGGER = LoggerFactory.getLogger(AuthorContentWebSearchExtractor.class);
 	
     private static SpringBootLambdaContainerHandler<AwsProxyRequest, AwsProxyResponse> handler;
     static {
@@ -51,7 +50,7 @@ abstract class AuthorContentCustomStreamLambdaHandler implements RequestStreamHa
 	
     private AwsProxyRequest getAwsProxyRequest (String author) {
     	var awsProxyRequest = new AwsProxyRequest ();
-      	awsProxyRequest.setHttpMethod("POST");
+      	awsProxyRequest.setHttpMethod("GET");
     	awsProxyRequest.setPath(this.getPath());
     	awsProxyRequest.setBody(author);
 

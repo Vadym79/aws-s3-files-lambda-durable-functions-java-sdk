@@ -37,20 +37,20 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 				.completionConfig(CompletionConfig.allCompleted())
 				.build();
 		
-		var invokeConfig=InvokeConfig.builder().tenantId(UPCOMING_TALKS_WEB_SEARCH_EXTRACTOR_FUNCTION_ARN).build();
+		var invokeConfig=InvokeConfig.builder().build();
 
-	    var parallel = ctx.parallel("parallel-search", config);
+	    var parallel = ctx.parallel("parallel-web-search", config);
 
-		var upcomingTalksFuture = parallel.branch("searchForUpcomingTalks-parallel-step",
+		var upcomingTalksFuture = parallel.branch("webSearchForUpcomingTalks-parallel-step",
 				UpcomingTalks.class, branchCtx -> {
-			return branchCtx.invoke("searchForUpcomingTalks-step",
+			return branchCtx.invoke("webSearchForUpcomingTalks-step",
 					UPCOMING_TALKS_WEB_SEARCH_EXTRACTOR_FUNCTION_ARN, author, 
 					UpcomingTalks.class, invokeConfig);
 		});
 
-		var youtubeVideosFuture = parallel.branch("searchForYouTubeVideos-parallel-step",
+		var youtubeVideosFuture = parallel.branch("webSearchForYouTubeVideos-parallel-step",
 				YouTubeVideos.class, branchCtx -> {
-			return branchCtx.invoke("searchForYouTubeVideos-step",
+			return branchCtx.invoke("webSearchForYouTubeVideos-step",
 					YOUTUBE_VIDEOS_WEB_SEARCH_EXTRACTOR_FUNCTION_ARN, author, 
 					YouTubeVideos.class, invokeConfig);
 		});

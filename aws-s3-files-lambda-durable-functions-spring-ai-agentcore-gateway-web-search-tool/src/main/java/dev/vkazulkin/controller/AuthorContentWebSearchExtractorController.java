@@ -45,7 +45,7 @@ import java.util.Map;
 
 
 @RestController
-public class AuthorContentExtractorController {
+public class AuthorContentWebSearchExtractorController {
 
     @Value("${cognito.user.pool.name}")
     private String USER_POOL_NAME;
@@ -67,9 +67,9 @@ public class AuthorContentExtractorController {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     
-    private static final Logger LOGGER = LoggerFactory.getLogger(AuthorContentExtractorController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthorContentWebSearchExtractorController.class);
  
-    public AuthorContentExtractorController(ChatClient.Builder builder) {
+    public AuthorContentWebSearchExtractorController(ChatClient.Builder builder) {
         var options = ToolCallingChatOptions.builder()
                 //.model("us.anthropic.claude-sonnet-4-6")
         		.model("amazon.nova-pro-v1:0")
@@ -83,7 +83,7 @@ public class AuthorContentExtractorController {
     }
     
 
-    @RequestMapping(path = "/author/content/youtubeVideos", method = RequestMethod.POST, 
+    @RequestMapping(path = "/author/content/youtubeVideos", method = RequestMethod.GET, 
     		consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public YouTubeVideos searchForYouTubeVideos(@RequestBody Author author) {
@@ -92,7 +92,7 @@ public class AuthorContentExtractorController {
     }
 
     
-    @RequestMapping(path = "/author/content/upcomingTalks", method = RequestMethod.POST, 
+    @RequestMapping(path = "/author/content/upcomingTalks", method = RequestMethod.GET, 
     		consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public UpcomingTalks searchForUpcomingTalks(@RequestBody Author author) {

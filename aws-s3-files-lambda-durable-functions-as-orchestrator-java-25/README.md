@@ -20,7 +20,7 @@ AuthorContentExtractor  (Durable Orchestrator)
         ├──[parallel]──► UpcomingTalksExtractor  (Lambda activity)
         ├──[parallel]──► YouTubeVideosExtractor   (Lambda activity)
         │
-        └──[sequential]─► WriteContentToFile      (Lambda activity, S3Files NFS mount)
+        └──[sequential]─► WriteAuthorContentToFile      (Lambda activity, S3Files NFS mount)
                                 │
                                 ▼
                         /mnt/workspace/{firstname}-{lastname}.json
@@ -34,7 +34,7 @@ AuthorContentExtractor  (Durable Orchestrator)
 | `AuthorContentExtractorOrchestrator` | `AuthorContentExtractor` | Durable orchestrator — fans out parallel branches, then writes result |
 | `UpcomingTalksExtractor` | `UpcomingTalksExtractor` | Activity — returns upcoming conference talks for an author |
 | `YouTubeVideosExtractor` | `YouTubeVideosExtractor` | Activity — returns YouTube videos for an author |
-| `WriteContentToFile` | `WriteContentToFile` | Activity — serializes `AuthorContent` to JSON and writes to S3Files mount |
+| `WriteAuthorContentToFile` | `WriteAuthorContentToFile` | Activity — serializes `AuthorContent` to JSON and writes to S3Files mount |
 | `GetAuthorContentResultOrchestrator` | `GetAuthorContentResult` | API handler — reads the result JSON from S3 and returns it |
 
 ---
@@ -87,7 +87,7 @@ Returns the JSON file written by the orchestration for the given author.
 |---|---|
 | S3 Bucket | `vadym-s3-files-orchestrator-workspace` — AES256 encrypted, versioned, private |
 | S3Files FileSystem | NFS-over-S3 mount backed by the bucket above |
-| S3Files AccessPoint | Mounted at `/mnt/workspace` inside `WriteContentToFile` Lambda (path `/lambda`) |
+| S3Files AccessPoint | Mounted at `/mnt/workspace` inside `WriteAuthorContentContentToFile` Lambda (path `/lambda`) |
 | VPC | Private subnets A & B with mount targets and security groups (via nested `network.yaml` stack) |
 | API Gateway | `AWSS3FilesLambdaDurableFunctionsOrchestratorJava25API` — API key required, 100 req/day quota |
 
@@ -103,7 +103,7 @@ Returns the JSON file written by the orchestration for the given author.
 | `REGION` | AWS region |
 | `UpcomingTalksExtractorFunctionArn` | ARN of the `UpcomingTalksExtractor` function |
 | `YouTubeVideosExtractorFunctionArn` | ARN of the `YouTubeVideosExtractor` function |
-| `WriteContentToFileFunctionArn` | ARN of the `WriteContentToFile` function |
+| `WriteAuthorContentToFileFunctionArn` | ARN of the `WriteAuthorContentToFile` function |
 
 ---
 
