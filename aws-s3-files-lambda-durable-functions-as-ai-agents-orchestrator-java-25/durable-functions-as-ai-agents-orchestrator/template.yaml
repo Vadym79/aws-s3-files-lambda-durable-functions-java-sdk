@@ -1,0 +1,329 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AWSS3FilesLambdaDurableFunctionsAIAgentsOrchestratorJava25API 
+  Sample SAM Template
+
+Parameters:
+  Stage:
+    Type: String
+    Default: prod
+
+Globals:
+  Function:
+    CodeUri: target/aws-s3-files-lambda-durable-functions-as-ai-agents-orchestrator-java-25-1.0.0-SNAPSHOT.jar
+    Runtime: java25
+    #SnapStart:
+      #ApplyOn: PublishedVersions
+    Timeout: 30 
+    MemorySize: 1024
+    Architectures:
+      #- arm64
+      - x86_64  
+    #Tracing: Active
+    Environment:
+      Variables:
+        #JAVA_TOOL_OPTIONS: "-XX:+TieredCompilation -XX:TieredStopAtLevel=1"
+        REGION: !Sub ${AWS::Region}
+                    
+Resources:
+  MyApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: !Ref Stage
+      #TracingEnabled: true
+      Name: AWSS3FilesLambdaDurableFunctionsAIAgentsOrchestratorJava25API
+      Description: API for AWSS3FilesLambdaDurableFunctionsAIAgentsOrchestratorJava25
+      AccessLogSetting:
+        DestinationArn: !Sub ${MyApiLogGroup.Arn} # This Log Group is already created within our SAM Template
+        Format: "{'integrationLatency':'$context.integrationLatency', 'latency':'$context.responseLatency', 'requestId':'$context.requestId', 'ip': '$context.identity.sourceIp', 'caller':'$context.identity.caller', 'user':'$context.identity.user','requestTime':'$context.requestTime', 'xrayTraceId':'$context.xrayTraceId', 'wafResponseCode':'$context.wafResponseCode', 'httpMethod':'$context.httpMethod','resourcePath':'$context.resourcePath', 'status':'$context.status','protocol':'$context.protocol', 'responseLength':'$context.responseLength' }"
+      MethodSettings:
+        - MetricsEnabled: True
+          ResourcePath: '/*'
+          HttpMethod: '*'
+      Auth:
+        ApiKeyRequired: true  # sets for all methods
+
+
+  MyApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/apigateway/${MyApi}"
+      RetentionInDays: 7
+
+  MyApiUsagePlan:
+    Type: AWS::ApiGateway::UsagePlan
+    DependsOn:
+      - MyApiStage
+    Properties:
+      ApiStages:
+        - ApiId: !Ref MyApi
+          Stage: !Ref Stage
+      UsagePlanName: AWSS3FilesLambdaDurableFunctionsAIAgentsOrchestratorJava25UsagePlan
+      Description: Usage plan for AWSS3FilesLambdaDurableFunctionsAIAgentsOrchestratorJava25API
+      Quota:
+        Limit: 100
+        Period: DAY
+      Throttle:
+        RateLimit:  10
+        BurstLimit: 50
+
+  MyApiKey:
+    Type: AWS::ApiGateway::ApiKey
+    DependsOn:
+      - MyApiStage
+    Properties:
+      Name: "AWSS3FilesLambdaDurableFunctionsAIAgentsOrchestratorJava25APIKey"
+      Description: "AWSS3FilesLambdaDurableFunctionsAIAgentsOrchestratorJava25 API Key"
+      Enabled: true
+      GenerateDistinctId: false
+      Value: a6ZbcDefQW12BN56VwsGeS
+      StageKeys:
+        - RestApiId: !Ref MyApi
+          StageName: !Ref Stage
+
+  MyApiUsagePlanKey:
+    Type: "AWS::ApiGateway::UsagePlanKey"
+    DependsOn:
+      - MyApi
+    Properties:
+      KeyId: !Ref MyApiKey
+      KeyType: API_KEY
+      UsagePlanId: !Ref MyApiUsagePlan
+
+
+  NetworkingStack:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: src/main/resources/stacks/network.yaml
+
+  WorkspaceBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName : vadym-s3-files-ai-agents-orchestrator-workspace
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
+
+  S3FilesRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Path: /service-role/
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowS3FilesAssumeRole
+            Effect: Allow
+            Principal:
+              Service: elasticfilesystem.amazonaws.com
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+              ArnLike:
+                aws:SourceArn: !Sub 'arn:aws:s3files:${AWS::Region}:${AWS::AccountId}:file-system/*'
+      Policies:
+        - PolicyName: S3FilesBucketAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: S3BucketPermissions
+                Effect: Allow
+                Action:
+                  - s3:ListBucket*
+                Resource: !GetAtt WorkspaceBucket.Arn
+                Condition:
+                  StringEquals:
+                    aws:ResourceAccount: !Ref AWS::AccountId
+              - Sid: S3ObjectPermissions
+                Effect: Allow
+                Action:
+                  - s3:AbortMultipartUpload
+                  - s3:DeleteObject*
+                  - s3:GetObject*
+                  - s3:List*
+                  - s3:PutObject*
+                Resource: !Sub '${WorkspaceBucket.Arn}/*'
+                Condition:
+                  StringEquals:
+                    aws:ResourceAccount: !Ref AWS::AccountId
+
+  S3FileSystem:
+    Type: AWS::S3Files::FileSystem
+    Properties:
+      Bucket: !GetAtt WorkspaceBucket.Arn
+      RoleArn: !GetAtt S3FilesRole.Arn
+      AcceptBucketWarning: true
+
+  MountTargetA:
+    Type: AWS::S3Files::MountTarget
+    Properties:
+      FileSystemId: !GetAtt S3FileSystem.FileSystemId
+      SubnetId: !GetAtt NetworkingStack.Outputs.PrivateSubnetAId
+      SecurityGroups:
+        - !GetAtt NetworkingStack.Outputs.MountTargetSGId
+
+  MountTargetB:
+    Type: AWS::S3Files::MountTarget
+    Properties:
+      FileSystemId: !GetAtt S3FileSystem.FileSystemId
+      SubnetId: !GetAtt NetworkingStack.Outputs.PrivateSubnetBId
+      SecurityGroups:
+        - !GetAtt NetworkingStack.Outputs.MountTargetSGId
+
+  S3FilesAccessPoint:
+    Type: AWS::S3Files::AccessPoint
+    Properties:
+      FileSystemId: !GetAtt S3FileSystem.FileSystemId
+      PosixUser:
+        Uid: '1000'
+        Gid: '1000'
+      RootDirectory:
+        Path: /lambda
+        CreationPermissions:
+          OwnerUid: '1000'
+          OwnerGid: '1000'
+          Permissions: '755'
+
+
+  AuthorContentExtractorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: AuthorContentExtractorAIAgentsOrchestrator
+      #AutoPublishAlias: liveVersion
+      Handler: dev.vkazulkin.handler.AuthorContentExtractor::handleRequest
+      Environment:
+        Variables:
+          UpcomingTalksExtractorFunctionArn: !GetAtt UpcomingTalksExtractorFunction.Arn
+          YouTubeVideosExtractorFunctionArn: !GetAtt YouTubeVideosExtractorFunction.Arn
+          WriteAuthorContentToFileFunctionArn: !GetAtt WriteAuthorContentToFileFunction.Arn
+      DurableConfig:
+        ExecutionTimeout: 3600
+        RetentionPeriodInDays: 7
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: InvokeLambda
+              Effect: Allow
+              Action: lambda:InvokeFunction
+              Resource:
+                  - !GetAtt YouTubeVideosExtractorFunction.Arn
+                  - !Sub '${YouTubeVideosExtractorFunction.Arn}:*'
+                  - !GetAtt UpcomingTalksExtractorFunction.Arn
+                  - !Sub '${UpcomingTalksExtractorFunction.Arn}:*'
+                  - !GetAtt WriteAuthorContentToFileFunction.Arn
+                  - !Sub '${WriteAuthorContentToFileFunction.Arn}:*'
+
+
+  AuthorContentExtractorFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${AuthorContentExtractorFunction}"
+      RetentionInDays: 7
+
+
+  GetAuthorContentResultFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetAuthorContentResultAIAgentsOrchestrator
+      Handler: dev.vkazulkin.handler.GetAuthorContentResult::handleRequest
+      Environment:
+        Variables:
+          S3_BUCKET_NAME: !Ref WorkspaceBucket
+          S3_FOLDER_NAME: lambda
+      #AutoPublishAlias: liveVersion
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref WorkspaceBucket
+      Events:
+        GetRequestById:
+          Type: Api
+          Properties:
+            RestApiId: !Ref MyApi
+            Path: /author/content/result/{firstname}/{lastname}
+            Method: get
+
+  GetAuthorContentResultFunctionLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${GetAuthorContentResultFunction}"
+      RetentionInDays: 7
+
+  YouTubeVideosExtractorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: YouTubeVideosAIAgentExtractor
+      #AutoPublishAlias: liveVersion
+      Handler: dev.vkazulkin.handler.YouTubeVideosExtractor::handleRequest
+
+
+  YouTubeVideosExtractorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${YouTubeVideosExtractorFunction}"
+      RetentionInDays: 7
+
+  UpcomingTalksExtractorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: UpcomingTalksAIAgentsExtractor
+      #AutoPublishAlias: liveVersion
+      Handler: dev.vkazulkin.handler.UpcomingTalksExtractor::handleRequest
+
+
+  UpcomingTalksExtractorLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${UpcomingTalksExtractorFunction}"
+      RetentionInDays: 7
+
+  WriteAuthorContentToFileFunction:
+    Type: AWS::Serverless::Function
+    DependsOn:
+      - MountTargetA
+      - MountTargetB
+    Properties:
+      FunctionName: WriteAuthorContentToFile
+      #AutoPublishAlias: liveVersion
+      Handler: dev.vkazulkin.handler.WriteAuthorContentToFile::handleRequest
+      Environment:
+         Variables:
+           WORKSPACE_MOUNT: /mnt/workspace
+      VpcConfig:
+        SecurityGroupIds:
+          - !GetAtt NetworkingStack.Outputs.LambdaSGId
+        SubnetIds:
+          - !GetAtt NetworkingStack.Outputs.PrivateSubnetAId
+          - !GetAtt NetworkingStack.Outputs.PrivateSubnetBId
+      FileSystemConfigs:
+        - Arn: !GetAtt S3FilesAccessPoint.AccessPointArn
+          LocalMountPath: /mnt/workspace
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: MountS3Files
+              Effect: Allow
+              Action:
+                - s3files:ClientMount
+                - s3files:ClientWrite
+                - s3files:ClientRootAccess
+              Resource: !GetAtt S3FileSystem.FileSystemArn
+
+  WriteAuthorContentToFileLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub "/aws/lambda/${WriteAuthorContentToFileFunction}"
+      RetentionInDays: 7
+
+Outputs:
+  AWSS3FilesLambdaDurableFunctionsAIAgentsOrchestratorJava25APIEndpoint:
+    Description: "API Gateway endpoint URL for Prod stage for AWS Lambda Durable Functions, S3Files and Java25"
+    Value: !Sub "https://${MyApi}.execute-api.${AWS::Region}.amazonaws.com/prod/result"
