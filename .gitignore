@@ -3,4 +3,5 @@
 **/.settings
 .vscode
 **/.idea
+**/cdk.out
 **/samconfig.toml
