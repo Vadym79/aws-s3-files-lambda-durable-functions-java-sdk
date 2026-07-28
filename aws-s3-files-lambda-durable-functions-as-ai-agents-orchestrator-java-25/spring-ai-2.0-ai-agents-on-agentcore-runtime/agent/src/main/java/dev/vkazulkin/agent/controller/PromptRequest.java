@@ -1,3 +1,3 @@
 package dev.vkazulkin.agent.controller;
 
-public record PromptRequest(String prompt, Class<?> resultType){};
+public record PromptRequest(String prompt, String resultType){};

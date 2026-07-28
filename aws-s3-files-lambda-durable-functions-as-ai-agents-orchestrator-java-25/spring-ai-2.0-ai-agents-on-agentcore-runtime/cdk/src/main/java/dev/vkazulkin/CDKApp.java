@@ -15,7 +15,7 @@ public interface CDKApp {
 
         var app = new App();
         new CognitoStack(app, appName, stackProperties());
-        //new RuntimeWithHTTPProtocolStack(app, appName, stackProperties());
+        new RuntimeStack(app, appName, stackProperties());
         new GatewayStack(app, appName, stackProperties());
         app.synth();  
     }

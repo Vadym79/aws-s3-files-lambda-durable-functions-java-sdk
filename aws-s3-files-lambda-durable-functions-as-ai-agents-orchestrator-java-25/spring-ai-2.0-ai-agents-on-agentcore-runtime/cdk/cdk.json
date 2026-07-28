@@ -1,8 +1,8 @@
 {
   "app": "mvn -e -q compile exec:java",
   "context": {
-      "ecrImageURI": "{AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/spring-ai-2.0-ac-conference-search-and-application-agent-bedrock-agentcore-runtime:v204",
-	  "roleArnForTheAgentCoreRuntime": "arn:aws:iam::{AWS_ACCOUNT_ID}:role/spring-aiac-conference-search-application-agentcore-runtime-role",
+      "ecrImageURI": "{AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/spring-ai-2.0-ac-author-content-search-ai-agents-on-bedrock-agentcore-runtime:v1",
+	  "roleArnForTheAgentCoreRuntime": "arn:aws:iam::{AWS_ACCOUNT_ID}:role/spring-ai-2.0-author-content-search-on-agentcore-runtime-role",
 	  "cognitoDomainPrefix":"us-east-1_gQASsKYCi",
 	  "roleArnForTheAgentCoreGateway": "arn:aws:iam::{AWS_ACCOUNT_ID}:role/service-role/AmazonBedrockAgentCoreGatewayDefaultServiceRole1783085510537"
   }

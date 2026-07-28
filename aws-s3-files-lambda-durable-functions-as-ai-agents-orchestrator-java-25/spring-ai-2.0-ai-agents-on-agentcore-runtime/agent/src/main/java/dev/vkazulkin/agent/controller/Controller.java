@@ -95,8 +95,10 @@ public class Controller {
 	 * @return agent answer
 	 */
 	@AgentCoreInvocation
-	public Object invokeSync(PromptRequest promptRequest, AgentCoreContext agentCoreContext) {
+	public Object invokeSync(PromptRequest promptRequest, AgentCoreContext agentCoreContext) throws Exception {
 		LOGGER.info("invocations endpoint with prompt: " + promptRequest.prompt());
+		var clazz = Class.forName(promptRequest.resultType());
+		LOGGER.info("result type: " + clazz);
 		var token = getAuthTokenViaHttpClient();
 		try (var client = McpClient.sync(getMcpClientTransport(token)).build()) {
 			client.initialize();
@@ -109,7 +111,7 @@ public class Controller {
 					.user(promptRequest.prompt())
 					.tools(syncMcpToolCallbackProvider.getToolCallbacks())
 					.call()
-					.entity(promptRequest.resultType());
+					.entity(clazz);
 			 LOGGER.info("response: " + response);
 	         return response;
 		}
