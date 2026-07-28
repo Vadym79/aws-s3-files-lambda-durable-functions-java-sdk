@@ -11,7 +11,7 @@ Parameters:
 
 Globals:
   Function:
-    CodeUri: target/aws-s3-files-lambda-durable-functions-as-ai-agents-orchestrator-java-25-1.0.0-SNAPSHOT.jar
+    CodeUri: target/durable-functions-as-ai-agents-orchestrator-1.0.0-SNAPSHOT.jar
     Runtime: java25
     #SnapStart:
       #ApplyOn: PublishedVersions
@@ -274,7 +274,7 @@ Resources:
   UpcomingTalksExtractorFunction:
     Type: AWS::Serverless::Function
     Properties:
-      FunctionName: UpcomingTalksAIAgentsExtractor
+      FunctionName: UpcomingTalksAIAgentExtractor
       #AutoPublishAlias: liveVersion
       Handler: dev.vkazulkin.handler.UpcomingTalksExtractor::handleRequest
 
@@ -291,7 +291,7 @@ Resources:
       - MountTargetA
       - MountTargetB
     Properties:
-      FunctionName: WriteAuthorContentToFile
+      FunctionName: WriteAIGeneratedAuthorContentToFile
       #AutoPublishAlias: liveVersion
       Handler: dev.vkazulkin.handler.WriteAuthorContentToFile::handleRequest
       Environment:
