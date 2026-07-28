@@ -74,8 +74,9 @@ public class Controller {
 	 */
 	public Controller(ChatClient.Builder builder, ChatMemory chatMemory, @Value("${aws.region}") String awsRegion) {
 		var options = ToolCallingChatOptions.builder()
-				 //.model("amazon.nova-pro-v1:0")
-				.model("us.anthropic.claude-sonnet-4-6")
+				 .model("amazon.nova-pro-v1:0")
+				//.model("us.anthropic.claude-sonnet-4-6")
+				.model("amazon.nova-pro-v1:0")
 				.maxTokens(2000);
 
 		this.chatClient = builder.defaultOptions(options)
