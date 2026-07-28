@@ -23,7 +23,7 @@ interface BaseContentExtract {
 			
 	        var payload = """
 	        		{
-					"prompt":"Search for the %s given by %s %s. Provide maximum %d results. Your response should be in JSON format. Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.",
+					"prompt":"Do a web search for the %s authored by %s %s. Provide maximum %d results. Your response should be in JSON format. Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.",
 	                 "resultType": "%s"
 	                }
 	                """.formatted(searchTopic, author.firstName(), author.lastName()
