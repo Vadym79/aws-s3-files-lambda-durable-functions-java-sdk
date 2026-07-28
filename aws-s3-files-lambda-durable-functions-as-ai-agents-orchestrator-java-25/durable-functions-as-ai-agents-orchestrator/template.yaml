@@ -15,7 +15,7 @@ Globals:
     Runtime: java25
     #SnapStart:
       #ApplyOn: PublishedVersions
-    Timeout: 30 
+    Timeout: 300 
     MemorySize: 1024
     Architectures:
       #- arm64
@@ -263,7 +263,21 @@ Resources:
       FunctionName: YouTubeVideosAIAgentExtractor
       #AutoPublishAlias: liveVersion
       Handler: dev.vkazulkin.handler.YouTubeVideosExtractor::handleRequest
-
+      Environment:
+        Variables:
+          AGENTCORE_RUNTIME_ARN: !Sub arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:runtime/RuntimeForAuthorContentAgenticSearch-LBaMJZGakW
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: InvokeRuntime
+              Effect: Allow
+              Action:
+                - bedrock-agentcore:*Runtime*
+                - bedrock-agentcore:*WorkloadIdentity
+                - bedrock-agentcore:*CredentialProvider
+                - bedrock-agentcore:*Token*
+                - bedrock-agentcore:*Access*
+              Resource: 'arn:aws:bedrock-agentcore:*:*:*runtime*'
 
   YouTubeVideosExtractorLogGroup:
     Type: AWS::Logs::LogGroup
@@ -277,7 +291,21 @@ Resources:
       FunctionName: UpcomingTalksAIAgentExtractor
       #AutoPublishAlias: liveVersion
       Handler: dev.vkazulkin.handler.UpcomingTalksExtractor::handleRequest
-
+      Environment:
+        Variables:
+          AGENTCORE_RUNTIME_ARN: !Sub arn:aws:bedrock-agentcore:${AWS::Region}:${AWS::AccountId}:runtime/RuntimeForAuthorContentAgenticSearch-LBaMJZGakW
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Sid: InvokeRuntime
+              Effect: Allow
+              Action:
+                - bedrock-agentcore:*Runtime*
+                - bedrock-agentcore:*WorkloadIdentity
+                - bedrock-agentcore:*CredentialProvider
+                - bedrock-agentcore:*Token*
+                - bedrock-agentcore:*Access*
+              Resource: 'arn:aws:bedrock-agentcore:*:*:*runtime*'
 
   UpcomingTalksExtractorLogGroup:
     Type: AWS::Logs::LogGroup

@@ -17,8 +17,6 @@ import org.slf4j.LoggerFactory;
 import org.springaicommunity.agentcore.annotation.AgentCoreInvocation;
 import org.springaicommunity.agentcore.context.AgentCoreContext;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
-import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.mcp.SyncMcpToolCallbackProvider;
 import org.springframework.ai.model.tool.ToolCallingChatOptions;
 import org.springframework.beans.factory.annotation.Value;
@@ -72,7 +70,7 @@ public class Controller {
 	 * @param builder
 	 * @param chatMemory
 	 */
-	public Controller(ChatClient.Builder builder, ChatMemory chatMemory, @Value("${aws.region}") String awsRegion) {
+	public Controller(ChatClient.Builder builder,  @Value("${aws.region}") String awsRegion) {
 		var options = ToolCallingChatOptions.builder()
 				 .model("amazon.nova-pro-v1:0")
 				//.model("us.anthropic.claude-sonnet-4-6")
@@ -81,8 +79,6 @@ public class Controller {
 
 		this.chatClient = builder.defaultOptions(options)
 				//.defaultSystem(SYSTEM_PROMPT)
-				//short term memory
-				.defaultAdvisors(MessageChatMemoryAdvisor.builder(chatMemory).build())	
 				.build();
 				
 		cognitoClient = CognitoIdentityProviderClient.builder().region(Region.of(awsRegion)).build();

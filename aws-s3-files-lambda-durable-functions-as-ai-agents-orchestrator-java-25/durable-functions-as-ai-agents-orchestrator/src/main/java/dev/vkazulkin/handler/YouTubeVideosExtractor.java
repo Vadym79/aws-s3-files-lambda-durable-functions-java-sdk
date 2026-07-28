@@ -15,11 +15,11 @@ public class YouTubeVideosExtractor implements RequestHandler<Author, YouTubeVid
 	
 	@Override
 	public YouTubeVideos handleRequest(Author author, Context context) {
-		LOGGER.info("invoked YouTubeVideosExtractor Lambda function with author "+author);
+		IO.println("invoked YouTubeVideosExtractor Lambda function with author "+author);
 		try {
 			return this.search(author, "YouTube videos", 3, YouTubeVideos.class);
 		} catch (Exception e) {
-			new RuntimeException(e);
+			IO.println("error occured "+e.getMessage());
 		}
 		return null;
 	}

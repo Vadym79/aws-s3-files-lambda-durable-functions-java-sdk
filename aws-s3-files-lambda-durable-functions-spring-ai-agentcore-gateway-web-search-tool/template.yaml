@@ -328,7 +328,6 @@ Resources:
       Environment:
         Variables:
           MAIN_CLASS: dev.vkazulkin.Application
-
       Policies:
         - Version: '2012-10-17'
           Statement:

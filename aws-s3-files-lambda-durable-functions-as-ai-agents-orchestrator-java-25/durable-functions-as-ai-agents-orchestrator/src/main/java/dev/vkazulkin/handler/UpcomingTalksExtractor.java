@@ -15,11 +15,11 @@ public class UpcomingTalksExtractor implements RequestHandler<Author, UpcomingTa
    
 	@Override
 	public UpcomingTalks handleRequest(Author author, Context context) {
-		LOGGER.info("invoked UpcomingTalksExtractor Lambda function with author "+author);
+		IO.println("invoked UpcomingTalksExtractor Lambda function with author "+author);
 		try {
 			return this.search(author, "upcoming talks", 3, UpcomingTalks.class);
 		} catch (Exception e) {
-			new RuntimeException(e);
+			IO.println("error occured "+e.getMessage());
 		}
 		return null;
 	}

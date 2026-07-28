@@ -33,7 +33,7 @@ public class RuntimeStack extends Stack {
         var runtime = Runtime.Builder.create(this, RUNTIME_NAME+"_ID")
                 .runtimeName(RUNTIME_NAME)
                 .authorizerConfiguration(RuntimeAuthorizerConfiguration.usingIAM())
-                .description("AgenCore Runtime with HTTP protocol for running authro content search app")
+                .description("AgentCore Runtime with HTTP protocol for running authro content search app")
                 .protocolConfiguration(ProtocolType.HTTP)
                 .agentRuntimeArtifact(agentRuntimeArtifact)
                 .executionRole(role)
