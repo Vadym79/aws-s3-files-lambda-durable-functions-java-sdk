@@ -3,6 +3,8 @@ package dev.vkazulkin.controller;
 import dev.vkazulkin.entity.Author;
 import dev.vkazulkin.entity.UpcomingTalks;
 import dev.vkazulkin.entity.YouTubeVideos;
+import dev.vkazulkin.handler.UpcomingTalksWebSearchExtractor;
+import dev.vkazulkin.handler.YouTubeVideosWebSearchExtractor;
 import io.modelcontextprotocol.client.McpClient;
 import io.modelcontextprotocol.client.transport.HttpClientStreamableHttpTransport;
 import io.modelcontextprotocol.spec.McpClientTransport;
@@ -83,7 +85,7 @@ public class AuthorContentWebSearchExtractorController {
     }
     
 
-    @RequestMapping(path = "/author/content/youtubeVideos", method = RequestMethod.GET, 
+    @RequestMapping(path = YouTubeVideosWebSearchExtractor.PATH, method = RequestMethod.GET, 
     		consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public YouTubeVideos searchForYouTubeVideos(@RequestBody Author author) {
@@ -92,7 +94,7 @@ public class AuthorContentWebSearchExtractorController {
     }
 
     
-    @RequestMapping(path = "/author/content/upcomingTalks", method = RequestMethod.GET, 
+    @RequestMapping(path = UpcomingTalksWebSearchExtractor.PATH, method = RequestMethod.GET, 
     		consumes = MediaType.APPLICATION_JSON_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
     public UpcomingTalks searchForUpcomingTalks(@RequestBody Author author) {
