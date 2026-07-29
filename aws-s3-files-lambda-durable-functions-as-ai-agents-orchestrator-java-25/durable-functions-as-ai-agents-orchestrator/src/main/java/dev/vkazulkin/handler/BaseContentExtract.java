@@ -29,7 +29,7 @@ interface BaseContentExtract {
 	                """.formatted(searchTopic, author.firstName(), author.lastName()
 	                		, maxNumberOfResults, clazz.getName());
 
-	        IO.println("payload: "+payload);
+	        LOGGER.info("payload: "+payload);
 			var httpClient=ApacheHttpClient.builder()
 				    .connectionTimeout(Duration.ofMinutes(5))
 				    .socketTimeout(Duration.ofMinutes(5))
@@ -41,19 +41,17 @@ interface BaseContentExtract {
 					.build();
 
 			var AGENT_RUNTIME_ARN= System.getenv("AGENTCORE_RUNTIME_ARN");
-			IO.println("AgentCore Runtime ARN: "+AGENT_RUNTIME_ARN);
+			LOGGER.info("AgentCore Runtime ARN: "+AGENT_RUNTIME_ARN);
 			
 			var invokeAgentRuntimeRequest = InvokeAgentRuntimeRequest.builder()
 					.agentRuntimeArn(AGENT_RUNTIME_ARN)				 
 					.qualifier("DEFAULT").contentType("application/json").payload(SdkBytes.fromUtf8String(payload)).build();
-			IO.println("before invoking the agentcore runtime");
 			try (var responseStream = bedrockAgentCoreClient
 					.invokeAgentRuntime(invokeAgentRuntimeRequest)) {
-				IO.println("after invoking the agentcore runtime");
 				var response = new String(responseStream.readAllBytes(), StandardCharsets.UTF_8);
 
-				IO.println(response);
+				LOGGER.info("Response from AgentCore Runtime "+response);
 				return OBJECT_MAPPER.readValue(response, clazz);
 			}
-		}
+	}
 }
