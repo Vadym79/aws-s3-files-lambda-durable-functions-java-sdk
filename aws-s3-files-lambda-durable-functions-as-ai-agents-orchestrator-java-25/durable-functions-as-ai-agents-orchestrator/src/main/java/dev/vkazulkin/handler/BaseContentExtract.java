@@ -20,7 +20,6 @@ interface BaseContentExtract {
 	   static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	   
 	   default public <T> T search(Author author, String searchTopic, int maxNumberOfResults, Class<T> clazz)  throws Exception {
-			
 	        var payload = """
 	        		{
 					"prompt":"Do a web search for the %s authored by %s %s. Provide maximum %d results. Your response should be in JSON format. Do not include any explanations, only provide a RFC8259 compliant JSON response following this format without deviation.",
@@ -30,13 +29,14 @@ interface BaseContentExtract {
 	                		, maxNumberOfResults, clazz.getName());
 
 	        LOGGER.info("payload: "+payload);
+	        
 			var httpClient=ApacheHttpClient.builder()
 				    .connectionTimeout(Duration.ofMinutes(5))
 				    .socketTimeout(Duration.ofMinutes(5))
 				    .build();
 						
 			var bedrockAgentCoreClient = BedrockAgentCoreClient.builder()			
-					.region(Region.US_EAST_1)
+					.region(Region.of(System.getenv("REGION")))
 					.httpClient(httpClient)
 					.build();
 
@@ -45,7 +45,10 @@ interface BaseContentExtract {
 			
 			var invokeAgentRuntimeRequest = InvokeAgentRuntimeRequest.builder()
 					.agentRuntimeArn(AGENT_RUNTIME_ARN)				 
-					.qualifier("DEFAULT").contentType("application/json").payload(SdkBytes.fromUtf8String(payload)).build();
+					.qualifier("DEFAULT").contentType("application/json")
+					.payload(SdkBytes.fromUtf8String(payload))
+					.build();
+			
 			try (var responseStream = bedrockAgentCoreClient
 					.invokeAgentRuntime(invokeAgentRuntimeRequest)) {
 				var response = new String(responseStream.readAllBytes(), StandardCharsets.UTF_8);
