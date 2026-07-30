@@ -18,12 +18,15 @@ public class AuthorContentExtractor extends DurableHandler<Author, AuthorContent
 		LOGGER.info("author "+author);
 		var config = this.getStepConfig();
 		
-		var upcomingTalks= ctx.step("searchForUpcomingTalks-step", UpcomingTalks.class, stepCtx -> this.searchForUpcomingTalks(), config);
-		var	youtubeVideos= ctx.step("searchForYouTubeVideos-step", YouTubeVideos.class, stepCtx -> this.searchForYouTubeVideos(), config);
+		var upcomingTalks= ctx.step("searchForUpcomingTalks-step", UpcomingTalks.class, 
+				stepCtx -> this.searchForUpcomingTalks(), config);
+		var	youtubeVideos= ctx.step("searchForYouTubeVideos-step", YouTubeVideos.class, 
+				stepCtx -> this.searchForYouTubeVideos(), config);
 			    	
 		var authorContent = new AuthorContent(author, upcomingTalks, youtubeVideos);
 		
-	    ctx.step("writeAuthorContentToFile-step", Void.class, stepCtx -> this.writeAuthorContentToFile(authorContent), config);
+	    ctx.step("writeAuthorContentToFile-step", Void.class, 
+	    		stepCtx -> this.writeAuthorContentToFile(authorContent), config);
 		
 	    return authorContent;
 	}
