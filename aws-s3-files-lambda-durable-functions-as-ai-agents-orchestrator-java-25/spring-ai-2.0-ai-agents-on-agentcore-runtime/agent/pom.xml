@@ -30,7 +30,7 @@
 	<properties>
 		<java.version>25</java.version>
 		<spring-ai.version>2.0.0</spring-ai.version>
-		<spring-ai-agentcore-version>2.0.0</spring-ai-agentcore-version>
+		<spring-ai-agentcore-version>2.1.0</spring-ai-agentcore-version>
 	</properties>
 	<repositories>
 		<repository>
