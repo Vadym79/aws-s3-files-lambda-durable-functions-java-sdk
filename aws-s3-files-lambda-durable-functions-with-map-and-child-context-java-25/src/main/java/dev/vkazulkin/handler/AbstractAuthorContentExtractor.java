@@ -94,7 +94,7 @@ public interface AbstractAuthorContentExtractor {
 	
 	
 	private static int findOrCreateYouTubePlayListForTheAuthor(Author author) {
-		// Use YouTube API to log in into YouTube Account and search for the author's play list
+		// Use YouTube API to log in to YouTube Account and search for the author's playlist
 		// and return it if it already exists or create a new one
 		// move this logic into a separate Lambda function and invoke it as a durable step
 		return 1;
@@ -102,7 +102,7 @@ public interface AbstractAuthorContentExtractor {
 	
 	private static Boolean saveYouTubeVideoToPlayList(YouTubeVideo youtubeVideo, int playListId) {
 	   LOGGER.info("invoked saveYouTubeVideoToPlayList function with youtube video:  " +youtubeVideo+ " and play list id" +playListId);
-	   // use YouTube API to save the video url to the play list. 
+	   // Use YouTube API to save the video url to the play ist. 
 	   LOGGER.info("successfully saved");
        return true;
 	}
