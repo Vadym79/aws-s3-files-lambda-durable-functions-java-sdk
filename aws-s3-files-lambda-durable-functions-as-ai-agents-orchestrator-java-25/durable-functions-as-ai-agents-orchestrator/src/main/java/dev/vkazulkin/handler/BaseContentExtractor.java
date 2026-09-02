@@ -14,9 +14,9 @@ import software.amazon.awssdk.services.bedrockagentcore.BedrockAgentCoreClient;
 import software.amazon.awssdk.services.bedrockagentcore.model.InvokeAgentRuntimeRequest;
 import tools.jackson.databind.ObjectMapper;
 
-interface BaseContentExtract {
+interface BaseContentExtractor {
 
-	   static final Logger LOGGER = LoggerFactory.getLogger(BaseContentExtract.class);
+	   static final Logger LOGGER = LoggerFactory.getLogger(BaseContentExtractor.class);
 	   static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 	   
 	   default public <T> T search(Author author, String searchTopic, int maxNumberOfResults, Class<T> clazz)  throws Exception {

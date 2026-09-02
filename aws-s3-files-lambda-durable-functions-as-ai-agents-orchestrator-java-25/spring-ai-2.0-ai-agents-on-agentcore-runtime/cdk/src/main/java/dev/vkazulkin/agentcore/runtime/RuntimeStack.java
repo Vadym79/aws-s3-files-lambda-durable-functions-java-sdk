@@ -39,7 +39,8 @@ public class RuntimeStack extends Stack {
                 .executionRole(role)
                 .build();
         
-        CfnOutput.Builder.create(this, "RuntimeIdOutput").value(runtime.getAgentRuntimeId()).build();           
+        CfnOutput.Builder.create(this, "RuntimeIdOutput").value(runtime.getAgentRuntimeId()).build();
+        CfnOutput.Builder.create(this, "RuntimeArnOutput").value(runtime.getAgentRuntimeArn()).build();
      }  
   
 }

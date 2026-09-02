@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
-public class UpcomingTalksExtractor implements RequestHandler<Author, UpcomingTalks>, BaseContentExtract {
+public class UpcomingTalksExtractor implements RequestHandler<Author, UpcomingTalks>, BaseContentExtractor {
 	
    private static final Logger LOGGER = LoggerFactory.getLogger(UpcomingTalksExtractor.class);
    
